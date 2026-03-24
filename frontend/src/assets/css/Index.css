@@ -1,0 +1,259 @@
+.content-wrapper {
+    background-image: url('https://i.ibb.co/vk0shrg/dfsdfsdfdf.png');
+    height: 100vh;
+    width: 100%;
+
+}
+
+.panel {
+    height: 100vh;
+    overflow: auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+
+
+}
+
+.glow-on-hover {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    color: #fff;
+    background: #111;
+    cursor: pointer;
+    position: relative;
+    z-index: 0;
+    border-radius: 10px;
+}
+
+.glow-on-hover:before {
+    content: '';
+    background: linear-gradient(45deg, #ff7300, #ff7300, #ff7300, #ff7300, #ff7300, #ff7300, #ff7300, #ff7300, #ff7300);
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    background-size: 400%;
+    z-index: -1;
+    filter: blur(5px);
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    animation: glowing 20s linear infinite;
+    opacity: 0;
+    transition: opacity .3s ease-in-out;
+    border-radius: 10px;
+}
+
+.glow-on-hover:active {
+    opacity: 0.9;
+}
+
+.glow-on-hover:hover:before {
+    opacity: 1;
+}
+
+.glow-on-hover:after {
+    z-index: -1;
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    left: 0;
+    top: 0;
+    border-radius: 10px;
+}
+
+#wiki {
+    border-radius: 15px;
+    padding: 9px;
+    margin-top: 5px;
+    width: 100%;
+    animation-name: animaDev;
+    animation-duration: 0.1s;
+}
+
+#devs {
+    border-radius: 15px;
+    padding: 9px;
+    margin-top: 5px;
+    width: 100%;
+    animation-name: animaDev;
+    animation-duration: 0.1s;
+}
+
+#fotos {
+    padding: 5px;
+    border-radius: 15px;
+    width: 45px;
+    height: 45px;
+}
+
+#picture__input {
+    display: none;
+}
+
+.picture {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 15px;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    border: 2px dashed currentcolor;
+    cursor: pointer;
+    font-family: sans-serif;
+    transition: color 300ms ease-in-out, background 300ms ease-in-out;
+    outline: none;
+    overflow: hidden;
+}
+
+.picture:hover {
+    color: #777;
+    background: #ccc;
+}
+
+.picture:active {
+    border-color: turquoise;
+    color: turquoise;
+    background: #eee;
+}
+
+.picture:focus {
+    color: #777;
+    background: #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.picture__img {
+    max-width: 100%;
+}
+
+@keyframes glowing {
+    0% {
+        background-position: 0 0;
+    }
+
+    50% {
+        background-position: 400% 0;
+    }
+
+    100% {
+        background-position: 0 0;
+    }
+}
+
+@keyframes animaDev {
+    0% {
+        opacity: 0%;
+        height: 0px;
+        margin-top: 0px;
+    }
+
+    13.5% {
+        opacity: 13.5%;
+        height: 29.7px;
+        margin-top: 1px;
+    }
+
+    25% {
+        opacity: 25%;
+        height: 55px;
+        margin-top: 1.5px;
+    }
+
+    38.5% {
+        opacity: 38.5%;
+        height: 84.7px;
+        margin-top: 2px;
+    }
+
+    50% {
+        opacity: 50%;
+        height: 110px;
+        margin-top: 2.5px;
+    }
+
+    63.5% {
+        opacity: 63.5%;
+        height: 139.7px;
+        margin-top: 3px;
+    }
+
+    75% {
+        opacity: 75%;
+        height: 165px;
+        margin-top: 3.5px;
+    }
+
+    88.5% {
+        opacity: 88.5%;
+        height: 194.7px;
+        margin-top: 4px;
+    }
+
+    100% {
+        opacity: 100%;
+        height: 220px;
+        margin-top: 5px;
+    }
+}
+
+@keyframes animaWiki {
+    0% {
+        opacity: 0%;
+        height: 0px;
+        margin-top: 0px;
+    }
+
+    13.5% {
+        opacity: 13.5%;
+        height: 12.15px;
+        margin-top: 1px;
+    }
+
+    25% {
+        opacity: 25%;
+        height: 22.5px;
+        margin-top: 1.5px;
+    }
+
+    38.5% {
+        opacity: 38.5%;
+        height: 34.65px;
+        margin-top: 2px;
+    }
+
+    50% {
+        opacity: 50%;
+        height: 45px;
+        margin-top: 2.5px;
+    }
+
+    63.5% {
+        opacity: 63.5%;
+        height: 57.15px;
+        margin-top: 3px;
+    }
+
+    75% {
+        opacity: 75%;
+        height: 67.5px;
+        margin-top: 3.5px;
+    }
+
+    88.5% {
+        opacity: 88.5%;
+        height: 79.65px;
+        margin-top: 4px;
+    }
+
+    100% {
+        opacity: 100%;
+        height: 90px;
+        margin-top: 5px;
+    }
+}
