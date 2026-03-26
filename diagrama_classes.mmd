@@ -1,0 +1,82 @@
+classDiagram
+direction LR
+
+class Usuario {
+  +UUID id
+  +String nome
+  +String email
+  +String senhaHash
+  +PerfilUsuario perfil
+  +Boolean ativo
+  +DateTime criadoEm
+  +DateTime atualizadoEm
+
+  +cadastrarAdmin(data)
+  +cadastrarVoluntario()
+  +buscarPorId(id)
+  +listar()
+  +atualizar(id, data)
+  +toogleAtivo()
+  +autenticar(email, senha)
+  +alterarSenha(id, novaSenha)
+}
+
+class Oficina {
+  +UUID id
+  +UUID usuarioAdminCriadorId
+  +String titulo
+  +String tema
+  +String descricao
+  +Date dataInicio
+  +Date dataFim
+  +StatusOficina status
+  +Integer cargaHorariaPrevista
+  +DateTime criadoEm
+  +DateTime atualizadoEm
+  +Integer participantes
+
+  +criarOficina(usuarioAdminCriadorId, data)
+  +buscarPorId(id)
+  +listar()
+  +listarVoluntarios(id)
+  +atualizar(data)
+  +desativar()
+  +ativar()
+  +concluir()
+  +calcularFrequenciaGeral(id)
+}
+
+class VoluntarioOficina {
+  +UUID id
+  +UUID usuarioId
+  +UUID oficinaId
+  +Integer presente
+  +Double horasCumpridas
+  +DateTime criadoEm
+  +DateTime atualizadoEm
+
+  +voluntariar(id, usuarioId)
+  +desvincularVoluntario()
+  +vincularVoluntario()
+  +registrarPresenca()
+  +calcularHorasCumpridas(usuarioId, data)
+}
+
+class PerfilUsuario {
+  <<enum>>
+  ADMIN
+  VOLUNTARIO
+}
+
+class StatusOficina {
+  <<enum>>
+  ATIVA
+  INATIVA
+  CONCLUIDA
+}
+
+Usuario --> PerfilUsuario
+Oficina --> StatusOficina
+
+Usuario "1" --> "0..*" VoluntarioOficina : participa
+Oficina "1" --> "0..*" VoluntarioOficina : possui
