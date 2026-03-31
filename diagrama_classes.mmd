@@ -12,14 +12,16 @@ class Usuario {
   +DateTime atualizadoEm
 
   +cadastrarAdmin(data)
-  +cadastrarVoluntario()
+  +cadastrarVoluntario(data)
+  +login(data)
   +buscarPorId(id)
   +listar()
   +atualizar(id, data)
-  +toogleAtivo()
+  +toogleAtivo(id)
   +autenticar(email, senha)
   +alterarSenha(id, novaSenha)
   +calcularHorasOficina(oficinaId)
+  +listaOficinas(id)
 }
 
 class Oficina {
@@ -41,9 +43,9 @@ class Oficina {
   +listar()
   +listarVoluntarios(id)
   +atualizar(data)
-  +desativar()
-  +ativar()
-  +concluir()
+  +desativar(id)
+  +ativar(id)
+  +concluir(id)
   +calcularFrequenciaGeral(id)
 }
 
@@ -51,15 +53,15 @@ class VoluntarioOficina {
   +UUID id
   +UUID usuarioId
   +UUID oficinaId
-  +Integer presente
+  +Boolean presente
   +Double horasCumpridas
   +DateTime criadoEm
   +DateTime atualizadoEm
 
   +voluntariar(id, usuarioId)
-  +desvincularVoluntario()
-  +vincularVoluntario()
-  +registrarPresenca()
+  +desvincularVoluntario(id, usuarioId)
+  +vincularVoluntario(id, usuarioId)
+  +registrarPresenca(id, usuarioId)
   +calcularHorasCumpridas(usuarioId, data)
 }
 
