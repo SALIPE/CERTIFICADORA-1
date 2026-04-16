@@ -9,13 +9,11 @@ async function login({ email, senha }) {
     error.statusCode = 400;
     throw error;
   }
-
   const query = `
     SELECT id, nome, email, senha_hash, perfil, ativo
     FROM usuario
     WHERE email = $1
   `;
-
   const { rows } = await db.query(query, [email]);
   const user = rows[0];
 

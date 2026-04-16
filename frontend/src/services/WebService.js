@@ -34,7 +34,7 @@ export async function post(url, body) {
 export async function postNoResponse(url, body) {
     return internalPost(url, body, true, getHeaders(url))
         .then(async response => {
-            isAuthenticate(response)
+            // isAuthenticate(response)
             if (!response.ok) {
                 const { error } = await response.json()
                 console.error(error)
@@ -46,7 +46,7 @@ export async function postNoResponse(url, body) {
 
 
 async function handleJsonResponse(response) {
-    isAuthenticate(response)
+    // isAuthenticate(response)
     if (!response.ok) {
         const error = await response.json()
         console.error(error)
@@ -68,7 +68,6 @@ export function getHeaders(url) {
     return {
         'Content-Type': 'application/json',
         'Authorization': sessionStorage.getItem('user'),
-        'Access-Control-Allow-Origin': '*',
     };
 }
 

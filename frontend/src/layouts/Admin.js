@@ -8,7 +8,7 @@ export default function AdminLayout() {
   return (
     <div className="main-panel">
       <div className="sticky-top">
-        Cabeçalho
+        Cabeçalho Admin
       </div>
       <div className="content">
         <Outlet />

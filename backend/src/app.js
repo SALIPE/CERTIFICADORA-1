@@ -7,8 +7,16 @@ const { notFoundHandler, errorHandler } = require('./middlewares/errorHandler');
 
 const app = express();
 
+// Configuração CORS
+const corsOptions = {
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(helmet());
-app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 

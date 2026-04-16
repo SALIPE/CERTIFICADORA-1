@@ -8,7 +8,7 @@ export default function VoluntarioLayout() {
   return (
     <div className="main-panel">
       <div className="sticky-top">
-        Cabeçalho
+        Cabeçalho Voluntario
       </div>
       <div className="content">
         <Outlet />

@@ -1,5 +1,6 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { useState } from 'react';
 import {
+  Alert,
   Button,
   Card,
   Col,
@@ -7,215 +8,142 @@ import {
   Form,
   Row,
   Spinner,
-} from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { errorAlert, utf8ToB64 } from "../utils/Functions";
+} from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
+import '../assets/css/Auth.css';
+import { useUser } from '../contexts/UserContext';
+import { errorAlert } from '../utils/Functions';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useUser();
 
-  const [isLogin, setIsLogin] = useState(false);
-  const [resetPassword, setResetPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
-  const [errors, setErrors] = useState({
-    username: false,
-    password: false,
-  });
-
-  function change(event: ChangeEvent<HTMLInputElement>) {
-    const { name, value } = event.target;
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: false,
-    }));
-
-    if (name === "username") {
-      setUsername(value.toLowerCase());
-    } else {
-      setPassword(value);
-    }
-  }
-
-  function validateForm() {
-    const newErrors = {
-      username: username.trim() === "",
-      password: !resetPassword && password.trim() === "",
-    };
-
-    setErrors(newErrors);
-
-    return !newErrors.username && !newErrors.password;
-  }
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!validateForm()) return;
-
-    await login();
-  }
-
-  async function login() {
     try {
-      setIsLogin(true);
+      if (!email.trim() || !password.trim()) {
+        throw new Error('Email e senha são obrigatórios');
+      }
 
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Context: "null",
-          Authorization: "Basic " + utf8ToB64(username + ":" + password),
-        },
-      };
+      let userType = await login(email, password);
 
-      // Simulação de login
-      // Substitua pela chamada real da sua API:
-      // const resp = await fetch(baseURL + "/users/login", requestOptions);
-      // const user = await handleResponse(resp);
+      if (userType == null) {
+        errorAlert("Login Incorreto!", () => null)
+      }
+      else {
+        // Redirecionar baseado no tipo de usuário
+        if (userType === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/voluntario/eventos');
+        }
+      }
 
-      console.log("Request:", requestOptions);
-
-      // Exemplo temporário:
-      navigate("/admin/dashboard");
-    } catch (error) {
-      logout();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
     } finally {
-      setIsLogin(false);
+      setIsLoading(false);
     }
-  }
-
-  function logout() {
-    setIsLogin(false);
-    errorAlert("Usuário ou senha inválidos!", hideAlert);
-    sessionStorage.removeItem("user");
-  }
-
-  function hideAlert() {
-    return null;
-  }
-
-  async function handleResponse(response: Response | null) {
-    if (response == null || !response.ok) {
-      logout();
-      return false;
-    }
-
-    return response.json();
-  }
+  };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
+    <div className="auth-page">
       <Container>
-        <Row className="justify-content-center">
+        <Row className="min-vh-100 d-flex align-items-center justify-content-center">
           <Col xs={12} sm={10} md={8} lg={5}>
-            <Card
-              className="shadow border-0"
-              style={{
-                borderRadius: "16px",
-                overflow: "hidden",
-              }}
-            >
-              <Card.Body style={{ padding: "2rem" }}>
-                <div className="text-center mb-4">
-                  <h2 className="fw-bold mb-2">
-                    {resetPassword ? "Recuperar Senha" : "Bem-vindo"}
-                  </h2>
-                  <p className="text-muted mb-0">
-                    {resetPassword
-                      ? "Informe seu e-mail para recuperação"
-                      : "Faça login para acessar o sistema"}
-                  </p>
-                </div>
+            <Card className="auth-card shadow-lg">
+              <Card.Body className="p-5">
+                <h2 className="text-center mb-2 auth-title">
+                  TEDI
+                </h2>
+                <p className="text-center text-muted mb-4">
+                  Sistema de Gerenciamento de Oficinas
+                </p>
 
-                <Form onSubmit={onSubmit}>
+                {error && (
+                  <Alert variant="danger" className="mb-4">
+                    {error}
+                  </Alert>
+                )}
+
+                <Form onSubmit={handleSubmit}>
                   <Form.Group className="mb-3">
-                    <Form.Label>E-mail</Form.Label>
+                    <Form.Label className="form-label-custom">
+                      Email
+                    </Form.Label>
                     <Form.Control
                       type="email"
-                      name="username"
-                      placeholder="Digite seu e-mail"
-                      value={username}
-                      onChange={change}
-                      isInvalid={errors.username}
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError('');
+                      }}
+                      placeholder="seu@email.com"
+                      className="form-control-custom"
+                      disabled={isLoading}
                     />
-                    <Form.Control.Feedback type="invalid">
-                      Informe seu e-mail.
-                    </Form.Control.Feedback>
                   </Form.Group>
 
-                  {!resetPassword && (
-                    <Form.Group className="mb-3">
-                      <Form.Label>Senha</Form.Label>
-                      <Form.Control
-                        type="password"
-                        name="password"
-                        placeholder="Digite sua senha"
-                        value={password}
-                        onChange={change}
-                        autoComplete="off"
-                        isInvalid={errors.password}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        Informe sua senha.
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  )}
+                  <Form.Group className="mb-4">
+                    <Form.Label className="form-label-custom">
+                      Senha
+                    </Form.Label>
+                    <Form.Control
+                      type="password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError('');
+                      }}
+                      placeholder="Digite sua senha"
+                      className="form-control-custom"
+                      disabled={isLoading}
+                    />
+                  </Form.Group>
 
-                  <div className="d-grid mb-3">
-                    <Button
-                      variant="primary"
-                      type="submit"
-                      disabled={isLogin}
-                      style={{ borderRadius: "10px", padding: "10px" }}
-                    >
-                      {isLogin ? (
-                        <>
-                          <Spinner
-                            animation="border"
-                            size="sm"
-                            className="me-2"
-                          />
-                          Entrando...
-                        </>
-                      ) : resetPassword ? (
-                        "Enviar recuperação"
-                      ) : (
-                        "Entrar"
-                      )}
-                    </Button>
-                  </div>
-
-                  <div className="text-center">
-                    {!resetPassword ? (
-                      <Button
-                        variant="link"
-                        className="p-0 text-decoration-none"
-                        onClick={() => setResetPassword(true)}
-                      >
-                        Esqueci minha senha
-                      </Button>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    className="w-100 btn-auth mb-4"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Spinner
+                          animation="border"
+                          size="sm"
+                          className="me-2"
+                        />
+                        Entrando...
+                      </>
                     ) : (
-                      <Button
-                        variant="link"
-                        className="p-0 text-decoration-none"
-                        onClick={() => setResetPassword(false)}
-                      >
-                        Voltar para o login
-                      </Button>
+                      'Entrar'
                     )}
-                  </div>
+                  </Button>
                 </Form>
+
+                <hr />
+
+                <p className="text-center text-muted mb-2">
+                  Não tem uma conta?
+                </p>
+                <Link to="/cadastro" className="d-block text-center mb-3">
+                  <Button variant="outline-primary" className="w-100">
+                    Cadastrar como Voluntário
+                  </Button>
+                </Link>
+
+                <p className="text-center text-muted small mb-0">
+                  Para acesso de administrador, contate o suporte
+                </p>
               </Card.Body>
             </Card>
           </Col>
