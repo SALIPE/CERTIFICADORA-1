@@ -29,6 +29,11 @@ async function findExistingEmail(email, ignoredId = null) {
   return rows[0];
 }
 
+async function createVoluntario({ nome, email, senha }) {
+
+  return create({ nome, email, senha })
+}
+
 async function create({ nome, email, senha, perfil = 'VOLUNTARIO', ativo = true }) {
   if (!nome || !email || !senha) {
     const error = new Error('Nome, e-mail e senha são obrigatórios.');
@@ -134,6 +139,7 @@ async function changePassword(id, novaSenha) {
 
 module.exports = {
   create,
+  createVoluntario,
   list,
   findById,
   update,

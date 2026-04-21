@@ -9,6 +9,15 @@ async function create(req, res, next) {
   }
 }
 
+async function createVoluntario(req, res, next) {
+  try {
+    const result = await userService.createVoluntario(req.body);
+    return res.status(201).json(result);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function list(_req, res, next) {
   try {
     const result = await userService.list();
@@ -65,6 +74,7 @@ async function changePassword(req, res, next) {
 
 module.exports = {
   create,
+  createVoluntario,
   list,
   findById,
   update,
