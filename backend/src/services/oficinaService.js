@@ -18,7 +18,9 @@ function mapOffice(row) {
   };
 }
 
-async function create({ titulo, tema, descricao, dataInicio, dataFim, status = 'ATIVA', cargaHorariaPrevista = 0 }, criadoPor) {
+async function create({ titulo, tema, descricao,
+  dataInicio, dataFim,
+  status = 'ATIVA' }, criadoPor) {
   if (!titulo || !tema || !dataInicio || !dataFim) {
     const error = new Error('Título, tema, data inicial e data final são obrigatórios.');
     error.statusCode = 400;
@@ -27,18 +29,21 @@ async function create({ titulo, tema, descricao, dataInicio, dataFim, status = '
 
   const query = `
     INSERT INTO oficina (
-      titulo, tema, descricao, data_inicio, data_fim, status, carga_horaria_prevista, criado_por
+      titulo, tema, descricao, inicio, fim, status, criado_por
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *
   `;
 
-  const { rows } = await db.query(query, [titulo, tema, descricao || null, dataInicio, dataFim, status, cargaHorariaPrevista, criadoPor]);
+  const { rows } = await db.query(query,
+    [titulo, tema, descricao || null,
+      dataInicio, dataFim, status, criadoPor]);
   return mapOffice(rows[0]);
 }
 
 async function list() {
-  const { rows } = await db.query('SELECT * FROM oficina ORDER BY criado_em DESC');
+  const { rows } = await db.query(
+    'SELECT * FROM oficina ORDER BY criado_em DESC');
   return rows.map(mapOffice);
 }
 
