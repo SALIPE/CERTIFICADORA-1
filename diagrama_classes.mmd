@@ -30,14 +30,13 @@ class Oficina {
   +String titulo
   +String tema
   +String descricao
-  +Date dataInicio
-  +Date dataFim
+  +DateTime dataInicio
+  +DateTime dataFim
   +StatusOficina status
-  +Integer cargaHorariaPrevista
+  +Integer numVoluntariosMax
   +DateTime criadoEm
   +DateTime atualizadoEm
-  +Integer participantes
-  +Integer numVoluntariosMax
+  
 
   +criarOficina(usuarioAdminCriadorId, data)
   +buscarPorId(id)
@@ -55,7 +54,6 @@ class VoluntarioOficina {
   +UUID usuarioId
   +UUID oficinaId
   +Boolean presente
-  +Double horasCumpridas
   +DateTime criadoEm
   +DateTime atualizadoEm
 

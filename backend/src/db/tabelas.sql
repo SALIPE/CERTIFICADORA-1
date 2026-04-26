@@ -60,14 +60,7 @@ CREATE TABLE IF NOT EXISTS usuario_oficina (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     usuario_id UUID NOT NULL REFERENCES usuario (id),
     oficina_id UUID NOT NULL REFERENCES oficina (id),
-    total_presencas INTEGER NOT NULL DEFAULT 0 CHECK (total_presencas >= 0),
-    total_faltas INTEGER NOT NULL DEFAULT 0 CHECK (total_faltas >= 0),
-    percentual_frequencia NUMERIC(5, 2) NOT NULL DEFAULT 0 CHECK (
-        percentual_frequencia >= 0
-        AND percentual_frequencia <= 100
-    ),
-    horas_cumpridas NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (horas_cumpridas >= 0),
-    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    presente BOOLEAN NOT NULL DEFAULT TRUE,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
     atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT usuario_oficina_unique UNIQUE (usuario_id, oficina_id)

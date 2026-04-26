@@ -101,7 +101,6 @@ export default function AdminDashboard() {
     <Container fluid className="admin-dashboard py-4">
       <Row className="mb-4">
         <Col>
-          <h1 className="mb-4">Dashboard de Oficinas</h1>
           <Button
             variant="primary"
             size="lg"
