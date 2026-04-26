@@ -8,10 +8,10 @@ function mapOffice(row) {
     titulo: row.titulo,
     tema: row.tema,
     descricao: row.descricao,
-    dataInicio: row.data_inicio,
-    dataFim: row.data_fim,
+    inicio: row.inicio,
+    fim: row.fim,
     status: row.status,
-    cargaHorariaPrevista: row.carga_horaria_prevista,
+    numeroParticipantes: row.num_participantes,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
     criadoPor: row.criado_por
@@ -22,7 +22,8 @@ async function create({ titulo, tema, descricao,
   dataInicio, dataFim,
   status = 'ATIVA' }, criadoPor) {
   if (!titulo || !tema || !dataInicio || !dataFim) {
-    const error = new Error('Título, tema, data inicial e data final são obrigatórios.');
+    const error = new Error(
+      'Título, tema, data inicial e data final são obrigatórios.');
     error.statusCode = 400;
     throw error;
   }
@@ -60,7 +61,8 @@ async function findById(id) {
   return office;
 }
 
-async function update(id, { titulo, tema, descricao, dataInicio, dataFim, status, cargaHorariaPrevista }) {
+async function update(id, { titulo, tema, descricao,
+  dataInicio, dataFim, status, numeroParticipantes }) {
   await findById(id);
 
   const query = `
@@ -68,15 +70,17 @@ async function update(id, { titulo, tema, descricao, dataInicio, dataFim, status
     SET titulo = COALESCE($2, titulo),
         tema = COALESCE($3, tema),
         descricao = COALESCE($4, descricao),
-        data_inicio = COALESCE($5, data_inicio),
-        data_fim = COALESCE($6, data_fim),
+        inicio = COALESCE($5, inicio),
+        fim = COALESCE($6, fim),
         status = COALESCE($7, status),
-        carga_horaria_prevista = COALESCE($8, carga_horaria_prevista)
+        num_participantes = COALESCE($8, num_participantes)
     WHERE id = $1
     RETURNING *
   `;
 
-  const { rows } = await db.query(query, [id, titulo, tema, descricao, dataInicio, dataFim, status, cargaHorariaPrevista]);
+  const { rows } = await db.query(query,
+    [id, titulo, tema, descricao,
+      dataInicio, dataFim, status, numeroParticipantes]);
   return mapOffice(rows[0]);
 }
 
