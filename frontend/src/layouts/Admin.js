@@ -1,13 +1,13 @@
 import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 
 export default function AdminLayout() {
   const { user, logout } = useUser()
+  const navigate = useNavigate();
 
   const handleEditUser = () => {
-    // Placeholder for edit user functionality
-    alert("Editar usuário - funcionalidade a implementar");
+    navigate('/admin/usuarios');
   };
 
   const handleLogout = () => {

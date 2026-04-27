@@ -34,7 +34,8 @@ async function createVoluntario({ nome, email, senha }) {
   return create({ nome, email, senha })
 }
 
-async function create({ nome, email, senha, perfil = 'VOLUNTARIO', ativo = true }) {
+async function create({ nome, email, senha = '123', perfil = 'VOLUNTARIO', ativo = true }) {
+
   if (!nome || !email || !senha) {
     const error = new Error('Nome, e-mail e senha são obrigatórios.');
     error.statusCode = 400;

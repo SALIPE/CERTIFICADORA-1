@@ -12,9 +12,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // Carregar usuário do localStorage ao montar
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
+
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        console.log(parsedUser)
         setUser(parsedUser);
       } catch {
         localStorage.removeItem('currentUser');

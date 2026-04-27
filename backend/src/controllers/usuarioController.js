@@ -1,6 +1,8 @@
 const userService = require('../services/usuarioService');
 
 async function create(req, res, next) {
+
+  console.log(req.body)
   try {
     const result = await userService.create(req.body);
     return res.status(201).json(result);
@@ -21,7 +23,7 @@ async function createVoluntario(req, res, next) {
 async function list(_req, res, next) {
   try {
     const result = await userService.list();
-    return res.status(200).json(result);
+    return res.status(200).json({ data: result });
   } catch (error) {
     return next(error);
   }

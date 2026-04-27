@@ -1,5 +1,5 @@
 
-export const baseURL = process.env.REACT_APP_API_BASE_URL;
+export const baseURL = "http://localhost:5000/api";
 
 
 function internalGet(url, headers) {
@@ -10,9 +10,9 @@ function internalGet(url, headers) {
     return fetch(getUrl(url), requestOptions)
 }
 
-function internalPost(url, body, isJson, headers) {
+function internalPost(url, body, isJson, headers, method = 'POST') {
     var requestOptions = {
-        method: 'POST',
+        method: method,
         headers: headers
     };
     if (body) {
@@ -28,6 +28,16 @@ export async function get(url) {
 
 export async function post(url, body) {
     return internalPost(url, body, true, getHeaders(url))
+        .then(handleJsonResponse)
+}
+
+export async function put(url, body) {
+    return internalPost(url, body, true, getHeaders(url), 'PUT')
+        .then(handleJsonResponse)
+}
+
+export async function patch(url, body) {
+    return internalPost(url, body, true, getHeaders(url), 'PATCH')
         .then(handleJsonResponse)
 }
 
@@ -65,10 +75,11 @@ function getUrl(url) {
 }
 
 export function getHeaders(url) {
-    return {
+    const header = {
         'Content-Type': 'application/json',
-        'Authorization': sessionStorage.getItem('user'),
+        'Authorization': "Bearer " + localStorage.getItem('user'),
     };
+    return header
 }
 
 function isAuthenticate(response) {
