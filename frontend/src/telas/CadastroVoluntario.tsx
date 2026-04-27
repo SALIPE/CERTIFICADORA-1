@@ -3,6 +3,7 @@ import { Alert, Button, Card, Col, Container, Form, Row } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom';
 import '../assets/css/Auth.css';
 import { useUser } from '../contexts/UserContext';
+import { errorAlert, successAlert } from '../utils/Functions';
 
 export default function CadastroVoluntario() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export default function CadastroVoluntario() {
     setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -53,10 +54,14 @@ export default function CadastroVoluntario() {
       }
 
       // Registrar
-      register(formData.name, formData.email, formData.password);
+      const cadastrou = await register(formData.name, formData.email, formData.password);
 
-      // Redirecionar para dashboard do voluntário
-      navigate('/voluntario/eventos');
+      if (cadastrou) {
+        successAlert("Cadastro concluído", () => navigate('/login'));
+      } else {
+        errorAlert("Erro ao se cadastrar, tente novamente mais tarde!")
+      }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao registrar');
     } finally {

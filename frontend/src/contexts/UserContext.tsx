@@ -44,7 +44,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = (nome: string, email: string, password: string) => {
+  const register = async (nome: string, email: string, password: string) => {
     // Validações básicas
     if (!nome || !email || !password) {
       throw new Error('Nome, email e senha são obrigatórios');
@@ -58,28 +58,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       throw new Error('Email inválido');
     }
 
-    // Simular verificação de email já registrado
-    const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    if (existingUsers.some((u: User) => u.email === email)) {
-      throw new Error('Email já registrado');
+    try {
+      const user = await post(`${URI}/auth/cadastro-voluntario`,
+        { nome, email, senha: password });
+
+      if (user.id) {
+        return true;
+      } else return false
+
+    } catch (error) {
+      console.error('Erro no cadastro:', error);
+      return false;
     }
-
-    // Criar novo voluntário
-    const newUser: User = {
-      id: Date.now().toString(),
-      email,
-      nome,
-      perfil: 'VOLUNTARIO',
-      ativo: true,
-    };
-
-    // Salvar na lista de usuários
-    existingUsers.push(newUser);
-    localStorage.setItem('users', JSON.stringify(existingUsers));
-
-    // Fazer login automático
-    setUser(newUser);
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
   };
 
   const logout = () => {

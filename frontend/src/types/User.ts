@@ -11,7 +11,7 @@ export interface User {
 export interface UserContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<string | null>;
-  register: (name: string, email: string, password: string) => void;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;

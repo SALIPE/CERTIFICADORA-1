@@ -113,8 +113,7 @@ export default function LoginPage() {
                     variant="primary"
                     type="submit"
                     className="w-100 btn-auth mb-4"
-                    disabled={isLoading}
-                  >
+                    disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Spinner
