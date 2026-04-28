@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Button, Card, Col, Container, Form, Modal, Row } from 'react-bootstrap';
-import '../../assets/css/AdminDashboard.css';
 import { Oficina } from '../../types/Oficina';
 
 export default function AdminDashboard() {
+  // 1. O estado inicial já começa com uma oficina de teste cadastrada
   const [workshops, setWorkshops] = useState<Oficina[]>([
     {
-      id: '1',
-      name: 'React Avançado',
-      description: 'Aprenda conceitos avançados de React',
+      id: 'teste-1',
+      name: 'React Avançado (Oficina de Teste)',
+      description: 'Aprenda conceitos avançados de React.',
       date: '2026-05-15',
       time: '14:00',
       location: 'Sala 101',
@@ -31,6 +32,49 @@ export default function AdminDashboard() {
     instructor: '',
   });
 
+  // 2. O useEffect chama a busca no banco assim que a tela abre
+  useEffect(() => {
+    fetchOficinas();
+  }, []);
+
+  // 3. Função para buscar do banco e juntar com a de teste
+  const fetchOficinas = async () => {
+    try {
+      // Pega o token que foi salvo no login
+      const token = localStorage.getItem('user');
+      
+      const response = await axios.get('http://localhost:5000/api/oficinas', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      // Como o Banco de Dados usa nomes diferentes (titulo em vez de name), 
+      // precisamos "traduzir" os dados antes de jogar na tela
+      const oficinasDoBanco = response.data.map((dbOficina: any) => ({
+        id: dbOficina.id,
+        name: dbOficina.titulo,
+        description: dbOficina.descricao,
+        date: dbOficina.inicio ? dbOficina.inicio.split('T')[0] : '', // Pega só a data
+        time: dbOficina.inicio ? dbOficina.inicio.split('T')[1].substring(0, 5) : '', // Pega só a hora
+        location: 'Local a definir', // O BD não tem essa coluna ainda
+        maxParticipants: 30,
+        currentParticipants: dbOficina.num_participantes || 0,
+        instructor: 'Instrutor TEDI' // O BD não tem essa coluna ainda
+      }));
+
+      // Mantém a oficina de teste e adiciona as que vieram do banco
+      setWorkshops(prev => {
+        // Filtra para evitar duplicar a oficina de teste se a tela recarregar
+        const base = prev.filter(w => w.id === 'teste-1');
+        return [...base, ...oficinasDoBanco];
+      });
+
+    } catch (error) {
+      console.error('Erro ao buscar as oficinas reais:', error);
+    }
+  };
+
   const handleShowModal = (workshop?: Oficina) => {
     if (workshop) {
       setEditingId(workshop.id);
@@ -47,14 +91,8 @@ export default function AdminDashboard() {
     } else {
       setEditingId(null);
       setFormData({
-        name: '',
-        description: '',
-        date: '',
-        time: '',
-        location: '',
-        maxParticipants: 30,
-        currentParticipants: 0,
-        instructor: '',
+        name: '', description: '', date: '', time: '', location: '',
+        maxParticipants: 30, currentParticipants: 0, instructor: '',
       });
     }
     setShowModal(true);
@@ -73,22 +111,51 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleSaveWorkshop = () => {
-    if (!formData.name || !formData.description || !formData.date || !formData.instructor) {
+  const handleSaveWorkshop = async () => {
+    // 1. Validação básica
+    if (!formData.name || !formData.description || !formData.date || !formData.time) {
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
-    if (editingId) {
-      setWorkshops(workshops.map(w => w.id === editingId ? { ...formData, id: editingId } : w));
-    } else {
-      const newWorkshop: Oficina = {
-        ...formData,
-        id: Date.now().toString(),
+    try {
+      const token = localStorage.getItem('user');
+      
+      // 2. O banco de dados exige "inicio" e "fim" (como Timestamp).
+      // Vamos juntar a data e hora do form para o inicio, e colocar o fim para 2h depois.
+      const dataInicio = new Date(`${formData.date}T${formData.time}:00`);
+      const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); // Adiciona 2 horas
+
+      // 3. Montamos o "pacote" exatamente como o Back-end espera receber
+      const payload = {
+        titulo: formData.name,
+        tema: 'Geral', // O banco exige o 'tema', então mandamos um fixo por enquanto
+        descricao: formData.description,
+        dataInicio: dataInicio.toISOString(),
+        dataFim: dataFim.toISOString()
       };
-      setWorkshops([...workshops, newWorkshop]);
+
+      if (editingId) {
+        // Se tem ID, é uma EDIÇÃO (PUT)
+        // Atenção: Certifique-se de que a rota no backend para update existe.
+        await axios.put(`http://localhost:5000/api/oficinas/${editingId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        // Se não tem ID, é uma CRIAÇÃO (POST)
+        await axios.post('http://localhost:5000/api/oficinas', payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      // 4. Se deu tudo certo, fecha o modal e recarrega a lista do banco!
+      handleCloseModal();
+      fetchOficinas(); // Essa função vai lá no banco buscar a lista atualizada
+
+    } catch (error) {
+      console.error('Erro ao salvar oficina:', error);
+      alert('Erro ao salvar a oficina. Verifique se o Back-end está rodando e a rota existe.');
     }
-    handleCloseModal();
   };
 
   const handleDeleteWorkshop = (id: string) => {
@@ -124,7 +191,7 @@ export default function AdminDashboard() {
                     <strong>Descrição:</strong> {workshop.description}
                   </p>
                   <p className="mb-2">
-                    <strong>Data:</strong> {new Date(workshop.date).toLocaleDateString('pt-BR')}
+                    <strong>Data:</strong> {workshop.date ? new Date(workshop.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : ''}
                   </p>
                   <p className="mb-2">
                     <strong>Hora:</strong> {workshop.time}
@@ -173,7 +240,6 @@ export default function AdminDashboard() {
         ))}
       </Row>
 
-      {/* Modal para criar/editar oficina */}
       <Modal show={showModal} onHide={handleCloseModal} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
@@ -292,5 +358,3 @@ export default function AdminDashboard() {
     </Container>
   );
 }
-
-
