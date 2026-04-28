@@ -55,12 +55,13 @@ export default function AdminDashboard() {
         id: dbOficina.id,
         name: dbOficina.titulo,
         description: dbOficina.descricao,
-        date: dbOficina.inicio ? dbOficina.inicio.split('T')[0] : '', // Pega só a data
-        time: dbOficina.inicio ? dbOficina.inicio.split('T')[1].substring(0, 5) : '', // Pega só a hora
-        location: 'Local a definir', // O BD não tem essa coluna ainda
+        // Mudamos aqui de 'inicio' para 'data_inicio'
+        date: dbOficina.data_inicio ? dbOficina.data_inicio.split('T')[0] : '', 
+        time: dbOficina.data_inicio ? dbOficina.data_inicio.split('T')[1].substring(0, 5) : '', 
+        location: 'Local a definir', // Fixo, pois o BD não tem essa coluna ainda
         maxParticipants: 30,
         currentParticipants: dbOficina.num_participantes || 0,
-        instructor: 'Instrutor TEDI' // O BD não tem essa coluna ainda
+        instructor: 'Instrutor TEDI' // Fixo, pois o BD não tem essa coluna ainda
       }));
 
       // Mantém a oficina de teste e adiciona as que vieram do banco
@@ -158,9 +159,24 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteWorkshop = (id: string) => {
-    if (window.confirm('Tem certeza que deseja deletar esta oficina?')) {
-      setWorkshops(workshops.filter(w => w.id !== id));
+  const handleDeleteWorkshop = async (id: string) => {
+    // Trocamos a palavra Deletar por Desativar na mensagem de confirmação
+    if (window.confirm('Tem certeza que deseja desativar esta oficina?')) {
+      try {
+        const token = localStorage.getItem('user');
+        
+        // Em vez de delete(), usamos patch() apontando para a rota correta do Back-end
+        await axios.patch(`http://localhost:5000/api/oficinas/${id}/desativar`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Se o Back-end confirmou a desativação, nós tiramos a oficina da tela
+        setWorkshops(workshops.filter(w => w.id !== id));
+        
+      } catch (error) {
+        console.error('Erro ao desativar oficina:', error);
+        alert('Erro ao desativar. Verifique o console para mais detalhes.');
+      }
     }
   };
 
@@ -231,7 +247,7 @@ export default function AdminDashboard() {
                     onClick={() => handleDeleteWorkshop(workshop.id)}
                     className="flex-grow-1"
                   >
-                    Deletar
+                    Desativar
                   </Button>
                 </div>
               </Card.Body>

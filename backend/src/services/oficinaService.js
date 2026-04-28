@@ -8,13 +8,13 @@ function mapOffice(row) {
     titulo: row.titulo,
     tema: row.tema,
     descricao: row.descricao,
-    inicio: row.inicio,
-    fim: row.fim,
+    dataInicio: row.data_inicio, // Estava row.inicio
+    dataFim: row.data_fim,       // Estava row.fim
     status: row.status,
-    numeroParticipantes: row.num_participantes,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
     criadoPor: row.criado_por
+    // A linha numeroParticipantes: row.num_participantes foi apagada
   };
 }
 
@@ -70,17 +70,16 @@ async function update(id, { titulo, tema, descricao,
     SET titulo = COALESCE($2, titulo),
         tema = COALESCE($3, tema),
         descricao = COALESCE($4, descricao),
-        inicio = COALESCE($5, inicio),
-        fim = COALESCE($6, fim),
-        status = COALESCE($7, status),
-        num_participantes = COALESCE($8, num_participantes)
+        data_inicio = COALESCE($5, data_inicio),
+        data_fim = COALESCE($6, data_fim),
+        status = COALESCE($7, status)
     WHERE id = $1
     RETURNING *
   `;
 
   const { rows } = await db.query(query,
     [id, titulo, tema, descricao,
-      dataInicio, dataFim, status, numeroParticipantes]);
+      dataInicio, dataFim, status]);
   return mapOffice(rows[0]);
 }
 
