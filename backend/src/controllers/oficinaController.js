@@ -1,11 +1,19 @@
 const oficinaService = require('../services/oficinaService');
 
+// No oficinaController.js
 async function create(req, res, next) {
   try {
-    const result = await oficinaService.create(req.body, req.user.id);
-    return res.status(201).json(result);
+    // Verifique se estes campos novos estão aqui dentro das chavetas:
+    const { titulo, tema, descricao, dataInicio, dataFim, local, instrutor, vagas } = req.body;
+    const criadoPor = req.user.id;
+
+    const oficina = await oficinaService.create({
+      titulo, tema, descricao, dataInicio, dataFim, local, instrutor, vagas
+    }, criadoPor);
+
+    res.status(201).json(oficina);
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 
@@ -29,10 +37,16 @@ async function findById(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const result = await oficinaService.update(req.params.id, req.body);
-    return res.status(200).json(result);
+    const { id } = req.params;
+    const { titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas } = req.body;
+
+    const oficina = await oficinaService.update(id, {
+      titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas
+    });
+
+    res.json(oficina);
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 

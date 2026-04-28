@@ -2,25 +2,24 @@ const db = require('../config/database');
 
 function mapOffice(row) {
   if (!row) return null;
-
   return {
     id: row.id,
     titulo: row.titulo,
     tema: row.tema,
     descricao: row.descricao,
-    dataInicio: row.data_inicio, // Estava row.inicio
-    dataFim: row.data_fim,       // Estava row.fim
+    dataInicio: row.data_inicio,
+    dataFim: row.data_fim,
     status: row.status,
+    local: row.local,         // Novo
+    instrutor: row.instrutor, // Novo
+    vagas: row.vagas,         // Novo
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
     criadoPor: row.criado_por
-    // A linha numeroParticipantes: row.num_participantes foi apagada
   };
 }
 
-async function create({ titulo, tema, descricao,
-  dataInicio, dataFim,
-  status = 'ATIVA' }, criadoPor) {
+async function create({ titulo, tema, descricao, dataInicio, dataFim, local, instrutor, vagas, status = 'ATIVA' }, criadoPor) {
   if (!titulo || !tema || !dataInicio || !dataFim) {
     const error = new Error(
       'Título, tema, data inicial e data final são obrigatórios.');
@@ -30,15 +29,14 @@ async function create({ titulo, tema, descricao,
 
   const query = `
     INSERT INTO oficina (
-      titulo, tema, descricao, data_inicio, data_fim, status, criado_por
+      titulo, tema, descricao, data_inicio, data_fim, local, instrutor, vagas, status, criado_por
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *
   `;
 
   const { rows } = await db.query(query,
-    [titulo, tema, descricao || null,
-      dataInicio, dataFim, status, criadoPor]);
+    [titulo, tema, descricao || null, dataInicio, dataFim, local || 'A definir', instrutor || 'Instrutor TEDI', vagas || 30, status, criadoPor]);
   return mapOffice(rows[0]);
 }
 
@@ -61,8 +59,7 @@ async function findById(id) {
   return office;
 }
 
-async function update(id, { titulo, tema, descricao,
-  dataInicio, dataFim, status, numeroParticipantes }) {
+async function update(id, { titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas }) {
   await findById(id);
 
   const query = `
@@ -72,14 +69,17 @@ async function update(id, { titulo, tema, descricao,
         descricao = COALESCE($4, descricao),
         data_inicio = COALESCE($5, data_inicio),
         data_fim = COALESCE($6, data_fim),
-        status = COALESCE($7, status)
+        status = COALESCE($7, status),
+        local = COALESCE($8, local),
+        instrutor = COALESCE($9, instrutor),
+        vagas = COALESCE($10, vagas)
     WHERE id = $1
     RETURNING *
   `;
 
   const { rows } = await db.query(query,
-    [id, titulo, tema, descricao,
-      dataInicio, dataFim, status]);
+    [id, titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas]);
+  
   return mapOffice(rows[0]);
 }
 

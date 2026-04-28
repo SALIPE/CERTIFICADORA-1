@@ -37,36 +37,36 @@ export default function AdminDashboard() {
     fetchOficinas();
   }, []);
 
-  // 3. Função para buscar do banco e juntar com a de teste
   const fetchOficinas = async () => {
     try {
-      // Pega o token que foi salvo no login
       const token = localStorage.getItem('user');
-      
       const response = await axios.get('http://localhost:5000/api/oficinas', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Como o Banco de Dados usa nomes diferentes (titulo em vez de name), 
-      // precisamos "traduzir" os dados antes de jogar na tela
-      const oficinasDoBanco = response.data.map((dbOficina: any) => ({
-        id: dbOficina.id,
-        name: dbOficina.titulo,
-        description: dbOficina.descricao,
-        // Mudamos aqui de 'inicio' para 'data_inicio'
-        date: dbOficina.data_inicio ? dbOficina.data_inicio.split('T')[0] : '', 
-        time: dbOficina.data_inicio ? dbOficina.data_inicio.split('T')[1].substring(0, 5) : '', 
-        location: 'Local a definir', // Fixo, pois o BD não tem essa coluna ainda
-        maxParticipants: 30,
-        currentParticipants: dbOficina.num_participantes || 0,
-        instructor: 'Instrutor TEDI' // Fixo, pois o BD não tem essa coluna ainda
-      }));
+      const oficinasDoBanco = response.data
+        .filter((dbOficina: any) => dbOficina.status === 'ATIVA')
+        .map((dbOficina: any) => {
+          // No mapOffice do seu backend, o campo chama 'dataInicio'
+          const dataISO = dbOficina.dataInicio || dbOficina.data_inicio;
+          
+          return {
+            id: dbOficina.id,
+            name: dbOficina.titulo,
+            description: dbOficina.descricao || '',
+            // Garante que a data seja formatada corretamente
+            date: dataISO ? dataISO.split('T')[0] : '', 
+            // Pega os 5 caracteres da hora (HH:mm)
+            time: dataISO ? dataISO.split('T')[1].substring(0, 5) : '', 
+            location: dbOficina.local || 'Local a definir',
+            // Corrigindo o nome da variável que vem do Back-end
+            maxParticipants: Number(dbOficina.vagas) || 30,         
+            currentParticipants: 0,
+            instructor: dbOficina.instrutor || 'Instrutor TEDI'
+          };
+        });
 
-      // Mantém a oficina de teste e adiciona as que vieram do banco
       setWorkshops(prev => {
-        // Filtra para evitar duplicar a oficina de teste se a tela recarregar
         const base = prev.filter(w => w.id === 'teste-1');
         return [...base, ...oficinasDoBanco];
       });
@@ -122,40 +122,37 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('user');
       
-      // 2. O banco de dados exige "inicio" e "fim" (como Timestamp).
-      // Vamos juntar a data e hora do form para o inicio, e colocar o fim para 2h depois.
       const dataInicio = new Date(`${formData.date}T${formData.time}:00`);
-      const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); // Adiciona 2 horas
+      const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); 
 
-      // 3. Montamos o "pacote" exatamente como o Back-end espera receber
+      // 3. Montamos o "pacote" usando o que está no formData (digitado no modal)
       const payload = {
         titulo: formData.name,
-        tema: 'Geral', // O banco exige o 'tema', então mandamos um fixo por enquanto
+        tema: 'Geral',
         descricao: formData.description,
         dataInicio: dataInicio.toISOString(),
-        dataFim: dataFim.toISOString()
+        dataFim: dataFim.toISOString(),
+        local: formData.location,
+        instrutor: formData.instructor,
+        vagas: Number(formData.maxParticipants)
       };
 
       if (editingId) {
-        // Se tem ID, é uma EDIÇÃO (PUT)
-        // Atenção: Certifique-se de que a rota no backend para update existe.
         await axios.put(`http://localhost:5000/api/oficinas/${editingId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        // Se não tem ID, é uma CRIAÇÃO (POST)
         await axios.post('http://localhost:5000/api/oficinas', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
 
-      // 4. Se deu tudo certo, fecha o modal e recarrega a lista do banco!
       handleCloseModal();
-      fetchOficinas(); // Essa função vai lá no banco buscar a lista atualizada
+      fetchOficinas(); 
 
     } catch (error) {
       console.error('Erro ao salvar oficina:', error);
-      alert('Erro ao salvar a oficina. Verifique se o Back-end está rodando e a rota existe.');
+      alert('Erro ao salvar a oficina. Verifique o console e o terminal do Back-end.');
     }
   };
 
