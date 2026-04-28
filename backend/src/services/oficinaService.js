@@ -30,7 +30,7 @@ async function create({ titulo, tema, descricao,
 
   const query = `
     INSERT INTO oficina (
-      titulo, tema, descricao, inicio, fim, status, criado_por
+      titulo, tema, descricao, data_inicio, data_fim, status, criado_por
     )
     VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *
