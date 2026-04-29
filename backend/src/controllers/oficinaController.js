@@ -3,7 +3,6 @@ const oficinaService = require('../services/oficinaService');
 // No oficinaController.js
 async function create(req, res, next) {
   try {
-    // Verifique se estes campos novos estão aqui dentro das chavetas:
     const { titulo, tema, descricao, dataInicio, dataFim, local, instrutor, vagas } = req.body;
     const criadoPor = req.user.id;
 

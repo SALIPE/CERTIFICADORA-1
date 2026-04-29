@@ -4,7 +4,7 @@ import { Button, Card, Col, Container, Form, Modal, Row } from 'react-bootstrap'
 import { Oficina } from '../../types/Oficina';
 
 export default function AdminDashboard() {
-  // 1. O estado inicial já começa com uma oficina de teste cadastrada
+  // O estado inicial já começa com uma oficina de teste cadastrada
   const [workshops, setWorkshops] = useState<Oficina[]>([
     {
       id: 'teste-1',
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
       const dataInicio = new Date(`${formData.date}T${formData.time}:00`);
       const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); 
 
-      // 3. Montamos o "pacote" usando o que está no formData (digitado no modal)
+      // 3. Montamos o "pacote" usando o que está no formData
       const payload = {
         titulo: formData.name,
         tema: 'Geral',
@@ -157,17 +157,16 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteWorkshop = async (id: string) => {
-    // Trocamos a palavra Deletar por Desativar na mensagem de confirmação
     if (window.confirm('Tem certeza que deseja desativar esta oficina?')) {
       try {
         const token = localStorage.getItem('user');
         
-        // Em vez de delete(), usamos patch() apontando para a rota correta do Back-end
+        // Em vez de delete(), usamos patch() apontando para a rota correta do Back
         await axios.patch(`http://localhost:5000/api/oficinas/${id}/desativar`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        // Se o Back-end confirmou a desativação, nós tiramos a oficina da tela
+        // Se o Back confirmou a desativação, nós tiramos a oficina da tela
         setWorkshops(workshops.filter(w => w.id !== id));
         
       } catch (error) {

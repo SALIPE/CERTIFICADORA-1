@@ -5,19 +5,17 @@ import { Alert, Badge, Button, Card, Col, Container, Row } from 'react-bootstrap
 import { Oficina } from '../../types/Oficina';
 
 export default function Eventos() {
-  // 1. Trocamos as oficinas fixas por uma lista vazia que vai encher com os dados do banco
   const [workshops, setWorkshops] = useState<Oficina[]>([]);
   
   const [registeredWorkshops, setRegisteredWorkshops] = useState<string[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // 2. Chama a função de buscar oficinas assim que a tela abre
+  // 1. Chama a função de buscar oficinas assim que a tela abre
   useEffect(() => {
     fetchOficinas();
   }, []);
 
-  // 3. A mesma função que usamos no Admin para buscar e traduzir os dados
   const fetchOficinas = async () => {
     try {
       const token = localStorage.getItem('user');
@@ -58,7 +56,7 @@ export default function Eventos() {
     try {
       const token = localStorage.getItem('user');
       
-      // Manda o pedido de inscrição para o Back-end
+      // Manda o pedido de inscrição para o Back
       await axios.post(`http://localhost:5000/api/oficinas/${workshopId}/inscrever`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -82,7 +80,7 @@ export default function Eventos() {
       
     } catch (error: any) {
       console.error('Erro ao se inscrever:', error);
-      // Se o Back-end avisar que já está inscrito, mostra o erro
+      // Se o Back avisar que já está inscrito, mostra o erro
       if (error.response && error.response.status === 400) {
         alert(error.response.data.message || 'Você já está inscrito nesta oficina.');
       } else {

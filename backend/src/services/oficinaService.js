@@ -141,7 +141,7 @@ async function enrollVolunteer(oficinaId, usuarioId) {
     throw error;
   }
 
-  // 3. Insere a inscrição (presenças e faltas começam zeradas por padrão no banco, se configurado assim)
+  // 3. Insere a inscrição
   const query = `
     INSERT INTO usuario_oficina (oficina_id, usuario_id, ativo)
     VALUES ($1, $2, true)
