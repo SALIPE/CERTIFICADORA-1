@@ -86,6 +86,18 @@ async function listVolunteers(req, res, next) {
   }
 }
 
+async function enroll(req, res, next) {
+  try {
+    const { id } = req.params; // ID da oficina
+    const usuarioId = req.user.id; // Pegamos o ID do usuário que está logado pelo token
+
+    const result = await oficinaService.enrollVolunteer(id, usuarioId);
+    return res.status(201).json(result);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   create,
   list,
@@ -94,5 +106,6 @@ module.exports = {
   activate,
   deactivate,
   finish,
-  listVolunteers
+  listVolunteers,
+  enroll
 };

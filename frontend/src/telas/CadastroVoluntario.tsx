@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, Button, Card, Col, Container, Form, Row } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import '../assets/css/Auth.css';
+//import '../assets/css/Auth.css';
 import { useUser } from '../contexts/UserContext';
 import { errorAlert, successAlert } from '../utils/Functions';
 

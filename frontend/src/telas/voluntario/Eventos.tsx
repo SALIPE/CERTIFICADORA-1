@@ -1,51 +1,94 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // <-- Adicionamos useEffect
+import axios from 'axios';
 import { Alert, Badge, Button, Card, Col, Container, Row } from 'react-bootstrap';
-import '../../assets/css/AdminDashboard.css';
+//import '../../assets/css/AdminDashboard.css';
 import { Oficina } from '../../types/Oficina';
 
 export default function Eventos() {
-  const [workshops] = useState<Oficina[]>([
-    {
-      id: '1',
-      name: 'React Avançado',
-      description: 'Aprenda conceitos avançados de React',
-      date: '2026-05-15',
-      time: '14:00',
-      location: 'Sala 101',
-      maxParticipants: 30,
-      currentParticipants: 15,
-      instructor: 'João Silva',
-    },
-    {
-      id: '2',
-      name: 'TypeScript Essencial',
-      description: 'Domine TypeScript do zero',
-      date: '2026-05-20',
-      time: '10:00',
-      location: 'Sala 102',
-      maxParticipants: 25,
-      currentParticipants: 25,
-      instructor: 'Maria Santos',
-    },
-  ]);
-
+  // 1. Trocamos as oficinas fixas por uma lista vazia que vai encher com os dados do banco
+  const [workshops, setWorkshops] = useState<Oficina[]>([]);
+  
   const [registeredWorkshops, setRegisteredWorkshops] = useState<string[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const handleRegister = (workshopId: string, workshopName: string) => {
+  // 2. Chama a função de buscar oficinas assim que a tela abre
+  useEffect(() => {
+    fetchOficinas();
+  }, []);
+
+  // 3. A mesma função que usamos no Admin para buscar e traduzir os dados
+  const fetchOficinas = async () => {
+    try {
+      const token = localStorage.getItem('user');
+      const response = await axios.get('http://localhost:5000/api/oficinas', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const oficinasDoBanco = response.data
+        .filter((dbOficina: any) => dbOficina.status === 'ATIVA')
+        .map((dbOficina: any) => {
+          const dataISO = dbOficina.dataInicio || dbOficina.data_inicio;
+          
+          return {
+            id: dbOficina.id,
+            name: dbOficina.titulo,
+            description: dbOficina.descricao || '',
+            date: dataISO ? dataISO.split('T')[0] : '', 
+            time: dataISO ? dataISO.split('T')[1].substring(0, 5) : '', 
+            location: dbOficina.local || 'Local a definir',
+            maxParticipants: Number(dbOficina.vagas) || 30,         
+            currentParticipants: dbOficina.numeroParticipantes || 0,
+            instructor: dbOficina.instrutor || 'Instrutor TEDI'
+          };
+        });
+
+      setWorkshops(oficinasDoBanco);
+    } catch (error) {
+      console.error('Erro ao buscar as oficinas reais:', error);
+    }
+  };
+
+  const handleRegister = async (workshopId: string, workshopName: string) => {
     if (registeredWorkshops.includes(workshopId)) {
       alert('Você já está inscrito nesta oficina!');
       return;
     }
 
-    setRegisteredWorkshops([...registeredWorkshops, workshopId]);
-    setSuccessMessage(`Você se inscreveu com sucesso em "${workshopName}"!`);
-    setShowSuccess(true);
+    try {
+      const token = localStorage.getItem('user');
+      
+      // Manda o pedido de inscrição para o Back-end
+      await axios.post(`http://localhost:5000/api/oficinas/${workshopId}/inscrever`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    setTimeout(() => {
-      setShowSuccess(false);
-    }, 3000);
+      // Se der sucesso, atualiza a tela
+      setRegisteredWorkshops([...registeredWorkshops, workshopId]);
+      setSuccessMessage(`Você se inscreveu com sucesso em "${workshopName}"!`);
+      setShowSuccess(true);
+
+      setWorkshops(prevWorkshops => 
+        prevWorkshops.map(w => 
+          w.id === workshopId 
+            ? { ...w, currentParticipants: w.currentParticipants + 1 }
+            : w
+        )
+      );
+
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+      
+    } catch (error: any) {
+      console.error('Erro ao se inscrever:', error);
+      // Se o Back-end avisar que já está inscrito, mostra o erro
+      if (error.response && error.response.status === 400) {
+        alert(error.response.data.message || 'Você já está inscrito nesta oficina.');
+      } else {
+        alert('Erro ao realizar inscrição. Tente novamente.');
+      }
+    }
   };
 
   const isRegistered = (workshopId: string) => registeredWorkshops.includes(workshopId);
@@ -115,7 +158,7 @@ export default function Eventos() {
                         <strong>Descrição:</strong> {workshop.description}
                       </p>
                       <p className="mb-2">
-                        <strong>Data:</strong> {new Date(workshop.date).toLocaleDateString('pt-BR')}
+                        <strong>Data:</strong> {workshop.date ? new Date(workshop.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : ''}
                       </p>
                       <p className="mb-2">
                         <strong>Hora:</strong> {workshop.time}

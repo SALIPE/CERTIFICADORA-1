@@ -10,9 +10,10 @@ function mapOffice(row) {
     dataInicio: row.data_inicio,
     dataFim: row.data_fim,
     status: row.status,
-    local: row.local,         // Novo
-    instrutor: row.instrutor, // Novo
-    vagas: row.vagas,         // Novo
+    local: row.local,
+    instrutor: row.instrutor,
+    vagas: row.vagas,
+    numeroParticipantes: parseInt(row.num_participantes) || 0, // <-- LINHA NOVA AQUI
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
     criadoPor: row.criado_por
@@ -41,8 +42,14 @@ async function create({ titulo, tema, descricao, dataInicio, dataFim, local, ins
 }
 
 async function list() {
-  const { rows } = await db.query(
-    'SELECT * FROM oficina ORDER BY criado_em DESC');
+  const query = `
+    SELECT o.*, COUNT(uo.usuario_id) as num_participantes
+    FROM oficina o
+    LEFT JOIN usuario_oficina uo ON o.id = uo.oficina_id
+    GROUP BY o.id
+    ORDER BY o.criado_em DESC
+  `;
+  const { rows } = await db.query(query);
   return rows.map(mapOffice);
 }
 
@@ -120,6 +127,31 @@ async function listVolunteers(oficinaId) {
   return rows;
 }
 
+async function enrollVolunteer(oficinaId, usuarioId) {
+  // 1. Verifica se a oficina existe
+  await findById(oficinaId);
+
+  // 2. Verifica se o usuário já não está inscrito
+  const checkQuery = 'SELECT id FROM usuario_oficina WHERE oficina_id = $1 AND usuario_id = $2';
+  const checkResult = await db.query(checkQuery, [oficinaId, usuarioId]);
+  
+  if (checkResult.rows.length > 0) {
+    const error = new Error('Usuário já está inscrito nesta oficina.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // 3. Insere a inscrição (presenças e faltas começam zeradas por padrão no banco, se configurado assim)
+  const query = `
+    INSERT INTO usuario_oficina (oficina_id, usuario_id, ativo)
+    VALUES ($1, $2, true)
+    RETURNING *
+  `;
+
+  const { rows } = await db.query(query, [oficinaId, usuarioId]);
+  return rows[0];
+}
+
 module.exports = {
   create,
   list,
@@ -128,5 +160,6 @@ module.exports = {
   activate,
   deactivate,
   finish,
-  listVolunteers
+  listVolunteers,
+  enrollVolunteer
 };

@@ -61,7 +61,7 @@ export default function AdminDashboard() {
             location: dbOficina.local || 'Local a definir',
             // Corrigindo o nome da variável que vem do Back-end
             maxParticipants: Number(dbOficina.vagas) || 30,         
-            currentParticipants: 0,
+            currentParticipants: dbOficina.numeroParticipantes || 0,
             instructor: dbOficina.instrutor || 'Instrutor TEDI'
           };
         });
