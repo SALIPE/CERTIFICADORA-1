@@ -53,6 +53,20 @@ async function list() {
   return rows.map(mapOffice);
 }
 
+async function getInscricoesUsuario(usuarioId) {
+  const query = `
+    SELECT uo.oficina_id 
+    FROM usuario_oficina uo
+    INNER JOIN oficina o ON uo.oficina_id = o.id
+    WHERE uo.usuario_id = $1 
+      AND uo.ativo = true 
+      AND o.status = 'ATIVA'
+  `;
+  const { rows } = await db.query(query, [usuarioId]);
+  
+  return rows.map(row => row.oficina_id); 
+}
+
 async function findById(id) {
   const { rows } = await db.query('SELECT * FROM oficina WHERE id = $1', [id]);
   const office = mapOffice(rows[0]);
@@ -161,5 +175,6 @@ module.exports = {
   deactivate,
   finish,
   listVolunteers,
-  enrollVolunteer
+  enrollVolunteer,
+  getInscricoesUsuario
 };

@@ -6,6 +6,7 @@ const router = Router();
 
 router.use(ensureAuthenticated);
 
+router.get('/minhas-inscricoes', authorize('VOLUNTARIO', 'ADMIN'), oficinaController.listarMinhasInscricoes);
 router.get('/', oficinaController.list);
 router.get('/:id', oficinaController.findById);
 router.post('/', authorize('ADMIN'), oficinaController.create);

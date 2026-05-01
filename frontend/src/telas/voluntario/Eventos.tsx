@@ -6,7 +6,6 @@ import { Oficina } from '../../types/Oficina';
 
 export default function Eventos() {
   const [workshops, setWorkshops] = useState<Oficina[]>([]);
-  
   const [registeredWorkshops, setRegisteredWorkshops] = useState<string[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -14,6 +13,7 @@ export default function Eventos() {
   // 1. Chama a função de buscar oficinas assim que a tela abre
   useEffect(() => {
     fetchOficinas();
+    fetchMinhasInscricoes();
   }, []);
 
   const fetchOficinas = async () => {
@@ -44,6 +44,22 @@ export default function Eventos() {
       setWorkshops(oficinasDoBanco);
     } catch (error) {
       console.error('Erro ao buscar as oficinas reais:', error);
+    }
+  };
+
+  const fetchMinhasInscricoes = async () => {
+    try {
+      const token = localStorage.getItem('user');
+      if (!token) return;
+
+      const response = await axios.get('http://localhost:5000/api/oficinas/minhas-inscricoes', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Salva o array de IDs que veio do Back-end no estado
+      setRegisteredWorkshops(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar as inscrições do usuário:', error);
     }
   };
 

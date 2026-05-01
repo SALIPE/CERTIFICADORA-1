@@ -97,6 +97,17 @@ async function enroll(req, res, next) {
   }
 }
 
+async function listarMinhasInscricoes(req, res) {
+  try {
+    // O ID do usuário deve vir do seu middleware de autenticação (JWT)
+    const usuarioId = req.user.id; 
+    const inscricoes = await oficinaService.getInscricoesUsuario(usuarioId);
+    res.status(200).json(inscricoes);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar inscrições." });
+  }
+}
+
 module.exports = {
   create,
   list,
@@ -106,5 +117,6 @@ module.exports = {
   deactivate,
   finish,
   listVolunteers,
-  enroll
+  enroll,
+  listarMinhasInscricoes
 };

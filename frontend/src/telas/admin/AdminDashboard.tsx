@@ -122,7 +122,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('user');
       
-      const dataInicio = new Date(`${formData.date}T${formData.time}:00`);
+      const dataInicio = new Date(`${formData.date}T${formData.time}:00Z`);
       const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); 
 
       // 3. Montamos o "pacote" usando o que está no formData
