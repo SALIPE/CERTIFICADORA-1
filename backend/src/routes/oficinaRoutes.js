@@ -16,5 +16,6 @@ router.patch('/:id/desativar', authorize('ADMIN'), oficinaController.deactivate)
 router.patch('/:id/concluir', authorize('ADMIN'), oficinaController.finish);
 router.get('/:id/voluntarios', oficinaController.listVolunteers);
 router.post('/:id/inscrever', oficinaController.enroll);
+router.delete('/:id/desinscrever', oficinaController.unenroll);
 
 module.exports = router;

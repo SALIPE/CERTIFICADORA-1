@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, Card, Col, Container, Form, Modal, Row } from 'react-bootstrap';
+import { Button, Card, Col, Container, Form, Modal, Row, ButtonGroup } from 'react-bootstrap';
 import { Oficina } from '../../types/Oficina';
 
 export default function AdminDashboard() {
@@ -21,6 +21,7 @@ export default function AdminDashboard() {
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [filtroStatus, setFiltroStatus] = useState<'ATIVA' | 'INATIVA'>('ATIVA');
   const [formData, setFormData] = useState<Omit<Oficina, 'id'>>({
     name: '',
     description: '',
@@ -45,7 +46,6 @@ export default function AdminDashboard() {
       });
       
       const oficinasDoBanco = response.data
-        .filter((dbOficina: any) => dbOficina.status === 'ATIVA')
         .map((dbOficina: any) => {
           // No mapOffice do seu backend, o campo chama 'dataInicio'
           const dataISO = dbOficina.dataInicio || dbOficina.data_inicio;
@@ -62,7 +62,8 @@ export default function AdminDashboard() {
             // Corrigindo o nome da variável que vem do Back-end
             maxParticipants: Number(dbOficina.vagas) || 30,         
             currentParticipants: dbOficina.numeroParticipantes || 0,
-            instructor: dbOficina.instrutor || 'Instrutor TEDI'
+            instructor: dbOficina.instrutor || 'Instrutor TEDI',
+            status: dbOficina.status || 'ATIVA'
           };
         });
 
@@ -161,13 +162,12 @@ export default function AdminDashboard() {
       try {
         const token = localStorage.getItem('user');
         
-        // Em vez de delete(), usamos patch() apontando para a rota correta do Back
         await axios.patch(`http://localhost:5000/api/oficinas/${id}/desativar`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        // Se o Back confirmou a desativação, nós tiramos a oficina da tela
-        setWorkshops(workshops.filter(w => w.id !== id));
+        // MUDA O STATUS EM VEZ DE DELETAR DA TELA
+        setWorkshops(workshops.map(w => w.id === id ? { ...w, status: 'INATIVA' } : w));
         
       } catch (error) {
         console.error('Erro ao desativar oficina:', error);
@@ -176,24 +176,63 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleActivateWorkshop = async (id: string) => {
+    if (window.confirm('Tem certeza que deseja reativar esta oficina?')) {
+      try {
+        const token = localStorage.getItem('user');
+        
+        // Bate na rota de ativar que já existe no seu backend
+        await axios.patch(`http://localhost:5000/api/oficinas/${id}/ativar`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // MUDA O STATUS PARA ATIVA E ELA VOLTA PRA PRIMEIRA ABA
+        setWorkshops(workshops.map(w => w.id === id ? { ...w, status: 'ATIVA' } : w));
+        
+      } catch (error) {
+        console.error('Erro ao reativar oficina:', error);
+        alert('Erro ao reativar. Verifique o console para mais detalhes.');
+      }
+    }
+  };
+
   return (
     <Container fluid className="admin-dashboard py-4">
-      <Row className="mb-4">
-        <Col>
+      <Row className="mb-4 align-items-center">
+        <Col xs={12} md="auto" className="mb-3 mb-md-0">
           <Button
             variant="primary"
             size="lg"
             onClick={() => handleShowModal()}
-            className="mb-4"
           >
             + Nova Oficina
           </Button>
         </Col>
-      </Row>
+        
+        {/* NOSSOS NOVOS BOTÕES DE FILTRO */}
+        <Col xs={12} md="auto">
+          <ButtonGroup>
+            <Button 
+              variant={filtroStatus === 'ATIVA' ? 'primary' : 'outline-primary'}
+              onClick={() => setFiltroStatus('ATIVA')}
+            >
+              Oficinas Ativas
+            </Button>
+            <Button 
+              variant={filtroStatus === 'INATIVA' ? 'secondary' : 'outline-secondary'}
+              onClick={() => setFiltroStatus('INATIVA')}
+            >
+              Oficinas Desativadas
+            </Button>
+          </ButtonGroup>
+        </Col>
+      </Row> 
 
       <Row className="g-4">
-        {workshops.map(workshop => (
-          <Col key={workshop.id} md={6} lg={4} className="mb-3">
+        {workshops
+          .filter(workshop => workshop.status === filtroStatus)
+          .map(workshop => (
+          <Col key={workshop.id} md={6} lg={4} className="mb-3">  
             <Card className="workshop-card h-100 shadow-sm">
               <Card.Body className="d-flex flex-column">
                 <Card.Title className="mb-3">{workshop.name}</Card.Title>
@@ -237,14 +276,26 @@ export default function AdminDashboard() {
                   >
                     Editar
                   </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDeleteWorkshop(workshop.id)}
-                    className="flex-grow-1"
-                  >
-                    Desativar
-                  </Button>
+                  
+                  {workshop.status === 'ATIVA' ? (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDeleteWorkshop(workshop.id)}
+                      className="flex-grow-1"
+                    >
+                      Desativar
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="success"
+                      size="sm"
+                      onClick={() => handleActivateWorkshop(workshop.id)}
+                      className="flex-grow-1"
+                    >
+                      Ativar Oficina
+                    </Button>
+                  )}
                 </div>
               </Card.Body>
             </Card>

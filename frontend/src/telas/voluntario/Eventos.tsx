@@ -105,6 +105,41 @@ export default function Eventos() {
     }
   };
 
+  const handleUnregister = async (workshopId: string, workshopName: string) => {
+    if (!window.confirm(`Tem certeza que deseja cancelar sua inscrição em "${workshopName}"?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('user');
+      
+      // Manda o pedido de cancelamento para o Back (usando DELETE)
+      await axios.delete(`http://localhost:5000/api/oficinas/${workshopId}/desinscrever`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Se der sucesso, tira o ID da lista de inscritos local
+      setRegisteredWorkshops(prev => prev.filter(id => id !== workshopId));
+      
+      // Atualiza a tela: Diminui 1 participante para liberar a vaga visualmente
+      setWorkshops(prevWorkshops => 
+        prevWorkshops.map(w => 
+          w.id === workshopId 
+            ? { ...w, currentParticipants: Math.max(0, w.currentParticipants - 1) }
+            : w
+        )
+      );
+
+      setSuccessMessage(`Inscrição em "${workshopName}" cancelada com sucesso!`);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+      
+    } catch (error: any) {
+      console.error('Erro ao cancelar inscrição:', error);
+      alert('Erro ao cancelar inscrição. Tente novamente.');
+    }
+  };
+
   const isRegistered = (workshopId: string) => registeredWorkshops.includes(workshopId);
 
   const getAvailableSpots = (workshop: Oficina) => {
@@ -204,19 +239,24 @@ export default function Eventos() {
                         </div>
                       </div>
                     </div>
-
-                    <Button
-                      variant={isUserRegistered ? 'success' : isFull ? 'secondary' : 'primary'}
-                      onClick={() => handleRegister(workshop.id, workshop.name)}
-                      disabled={isFull || isUserRegistered}
-                      className="w-100"
-                    >
-                      {isUserRegistered
-                        ? '✓ Já inscrito'
-                        : isFull
-                          ? 'Oficina Cheia'
-                          : 'Inscrever-se'}
-                    </Button>
+                    {isUserRegistered ? (
+                      <Button
+                        variant="danger"
+                        onClick={() => handleUnregister(workshop.id, workshop.name)}
+                        className="w-100"
+                      >
+                        Cancelar Inscrição
+                      </Button>
+                    ) : (
+                      <Button
+                        variant={isFull ? 'secondary' : 'primary'}
+                        onClick={() => handleRegister(workshop.id, workshop.name)}
+                        disabled={isFull}
+                        className="w-100"
+                      >
+                        {isFull ? 'Oficina Cheia' : 'Inscrever-se'}
+                      </Button>
+                    )}
                   </Card.Body>
                 </Card>
               </Col>

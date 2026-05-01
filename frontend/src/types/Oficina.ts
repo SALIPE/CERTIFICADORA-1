@@ -8,4 +8,5 @@ export interface Oficina {
   maxParticipants: number;
   currentParticipants: number;
   instructor: string;
+  status?: string;
 }

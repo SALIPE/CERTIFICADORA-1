@@ -166,6 +166,19 @@ async function enrollVolunteer(oficinaId, usuarioId) {
   return rows[0];
 }
 
+async function unenrollVolunteer(oficinaId, usuarioId) {
+  // Vamos deletar a linha da tabela para liberar a vaga e não dar conflito se ele tentar se inscrever de novo
+  const query = 'DELETE FROM usuario_oficina WHERE oficina_id = $1 AND usuario_id = $2 RETURNING *';
+  const { rows } = await db.query(query, [oficinaId, usuarioId]);
+  
+  if (rows.length === 0) {
+    const error = new Error('Inscrição não encontrada.');
+    error.statusCode = 404;
+    throw error;
+  }
+  return rows[0];
+}
+
 module.exports = {
   create,
   list,
@@ -176,5 +189,6 @@ module.exports = {
   finish,
   listVolunteers,
   enrollVolunteer,
-  getInscricoesUsuario
+  getInscricoesUsuario,
+  unenrollVolunteer
 };
