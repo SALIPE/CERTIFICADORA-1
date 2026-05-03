@@ -13,6 +13,7 @@ function mapOffice(row) {
     local: row.local,
     instrutor: row.instrutor,
     vagas: row.vagas,
+    numeroVoluntarios: parseInt(row.num_voluntarios) || 0, // <-- LINHA NOVA AQUI
     numeroParticipantes: parseInt(row.num_participantes) || 0, // <-- LINHA NOVA AQUI
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
@@ -43,7 +44,7 @@ async function create({ titulo, tema, descricao, dataInicio, dataFim, local, ins
 
 async function list() {
   const query = `
-    SELECT o.*, COUNT(uo.usuario_id) as num_participantes
+    SELECT o.*, COUNT(uo.usuario_id) as num_voluntarios
     FROM oficina o
     LEFT JOIN usuario_oficina uo ON o.id = uo.oficina_id
     GROUP BY o.id
@@ -63,8 +64,8 @@ async function getInscricoesUsuario(usuarioId) {
       AND o.status = 'ATIVA'
   `;
   const { rows } = await db.query(query, [usuarioId]);
-  
-  return rows.map(row => row.oficina_id); 
+
+  return rows.map(row => row.oficina_id);
 }
 
 async function findById(id) {
@@ -80,7 +81,7 @@ async function findById(id) {
   return office;
 }
 
-async function update(id, { titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas }) {
+async function update(id, { titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas, numeroParticipantes }) {
   await findById(id);
 
   const query = `
@@ -93,14 +94,15 @@ async function update(id, { titulo, tema, descricao, dataInicio, dataFim, status
         status = COALESCE($7, status),
         local = COALESCE($8, local),
         instrutor = COALESCE($9, instrutor),
-        vagas = COALESCE($10, vagas)
+        vagas = COALESCE($10, vagas),
+        num_participantes = COALESCE($11, num_participantes)
     WHERE id = $1
     RETURNING *
   `;
 
   const { rows } = await db.query(query,
-    [id, titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas]);
-  
+    [id, titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas, numeroParticipantes]);
+
   return mapOffice(rows[0]);
 }
 
@@ -148,7 +150,7 @@ async function enrollVolunteer(oficinaId, usuarioId) {
   // 2. Verifica se o usuário já não está inscrito
   const checkQuery = 'SELECT id FROM usuario_oficina WHERE oficina_id = $1 AND usuario_id = $2';
   const checkResult = await db.query(checkQuery, [oficinaId, usuarioId]);
-  
+
   if (checkResult.rows.length > 0) {
     const error = new Error('Usuário já está inscrito nesta oficina.');
     error.statusCode = 400;
@@ -170,7 +172,7 @@ async function unenrollVolunteer(oficinaId, usuarioId) {
   // Vamos deletar a linha da tabela para liberar a vaga e não dar conflito se ele tentar se inscrever de novo
   const query = 'DELETE FROM usuario_oficina WHERE oficina_id = $1 AND usuario_id = $2 RETURNING *';
   const { rows } = await db.query(query, [oficinaId, usuarioId]);
-  
+
   if (rows.length === 0) {
     const error = new Error('Inscrição não encontrada.');
     error.statusCode = 404;

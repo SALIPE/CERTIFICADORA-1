@@ -1,79 +1,56 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Button, Card, Col, Container, Form, Modal, Row, ButtonGroup } from 'react-bootstrap';
+import { useEffect, useState } from 'react';
+import { Button, ButtonGroup, Card, Col, Container, Form, Modal, Row } from 'react-bootstrap';
+import { get, post, put } from '../../services/WebService';
 import { Oficina } from '../../types/Oficina';
+import { successAlert } from '../../utils/Functions';
 
 export default function AdminDashboard() {
-  // O estado inicial já começa com uma oficina de teste cadastrada
-  const [workshops, setWorkshops] = useState<Oficina[]>([
-    {
-      id: 'teste-1',
-      name: 'React Avançado (Oficina de Teste)',
-      description: 'Aprenda conceitos avançados de React.',
-      date: '2026-05-15',
-      time: '14:00',
-      location: 'Sala 101',
-      maxParticipants: 30,
-      currentParticipants: 15,
-      instructor: 'João Silva',
-    },
-  ]);
+  const [workshops, setWorkshops] = useState<Oficina[]>([]);
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState<'ATIVA' | 'INATIVA'>('ATIVA');
-  const [formData, setFormData] = useState<Omit<Oficina, 'id'>>({
-    name: '',
-    description: '',
-    date: '',
-    time: '',
-    location: '',
-    maxParticipants: 30,
-    currentParticipants: 0,
-    instructor: '',
+  const [formData, setFormData] = useState<Partial<Oficina>>({
+    titulo: '',
+    descricao: '',
+    dataInicio: '',
+    dataFim: '',
+    local: '',
+    tema: 'Geral',
+    instrutor: '',
+    vagas: 30,
+    numeroParticipantes: 0
   });
 
-  // 2. O useEffect chama a busca no banco assim que a tela abre
+
   useEffect(() => {
     fetchOficinas();
   }, []);
 
   const fetchOficinas = async () => {
     try {
-      const token = localStorage.getItem('user');
-      const response = await axios.get('http://localhost:5000/api/oficinas', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const oficinasDoBanco = response.data
-        .map((dbOficina: any) => {
-          // No mapOffice do seu backend, o campo chama 'dataInicio'
-          const dataISO = dbOficina.dataInicio || dbOficina.data_inicio;
-          
-          return {
-            id: dbOficina.id,
-            name: dbOficina.titulo,
-            description: dbOficina.descricao || '',
-            // Garante que a data seja formatada corretamente
-            date: dataISO ? dataISO.split('T')[0] : '', 
-            // Pega os 5 caracteres da hora (HH:mm)
-            time: dataISO ? dataISO.split('T')[1].substring(0, 5) : '', 
-            location: dbOficina.local || 'Local a definir',
-            // Corrigindo o nome da variável que vem do Back-end
-            maxParticipants: Number(dbOficina.vagas) || 30,         
-            currentParticipants: dbOficina.numeroParticipantes || 0,
-            instructor: dbOficina.instrutor || 'Instrutor TEDI',
-            status: dbOficina.status || 'ATIVA'
-          };
-        });
-
-      setWorkshops(prev => {
-        const base = prev.filter(w => w.id === 'teste-1');
-        return [...base, ...oficinasDoBanco];
+      const response = await get("/oficinas")
+      const oficinasDoBanco = response.map((dbOficina: any) => {
+        const dataInicio = dbOficina.dataInicio || dbOficina.dataInicio;
+        return {
+          id: dbOficina.id,
+          titulo: dbOficina.titulo,
+          tema: dbOficina.tema || 'Geral',
+          descricao: dbOficina.descricao || '',
+          dataInicio: dataInicio ? dataInicio.split('T')[0] : '',
+          dataFim: dbOficina.dataFim ? dbOficina.dataFim.split('T')[0] : '',
+          local: dbOficina.local || 'Local a definir',
+          numeroParticipantes: dbOficina.numeroParticipantes || 0,
+          numeroVoluntarios: dbOficina.numeroVoluntarios || 0,
+          vagas: dbOficina.vagas,
+          instrutor: dbOficina.instrutor || 'Instrutor TEDI',
+          status: dbOficina.status || 'ATIVA'
+        };
       });
 
+      setWorkshops(oficinasDoBanco);
     } catch (error) {
-      console.error('Erro ao buscar as oficinas reais:', error);
+      console.error('Erro ao buscar oficinas:', error);
     }
   };
 
@@ -81,20 +58,28 @@ export default function AdminDashboard() {
     if (workshop) {
       setEditingId(workshop.id);
       setFormData({
-        name: workshop.name,
-        description: workshop.description,
-        date: workshop.date,
-        time: workshop.time,
-        location: workshop.location,
-        maxParticipants: workshop.maxParticipants,
-        currentParticipants: workshop.currentParticipants,
-        instructor: workshop.instructor,
+        titulo: workshop.titulo,
+        descricao: workshop.descricao,
+        dataInicio: workshop.dataInicio,
+        dataFim: workshop.dataFim,
+        local: workshop.local,
+        tema: workshop.tema,
+        instrutor: workshop.instrutor,
+        vagas: workshop.vagas,
+        numeroParticipantes: workshop.numeroParticipantes
       });
     } else {
       setEditingId(null);
       setFormData({
-        name: '', description: '', date: '', time: '', location: '',
-        maxParticipants: 30, currentParticipants: 0, instructor: '',
+        titulo: '',
+        descricao: '',
+        dataInicio: '',
+        dataFim: '',
+        local: '',
+        tema: 'Geral',
+        instrutor: '',
+        vagas: 30,
+        numeroParticipantes: 0
       });
     }
     setShowModal(true);
@@ -109,47 +94,45 @@ export default function AdminDashboard() {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === 'maxParticipants' || name === 'currentParticipants' ? parseInt(value) : value,
+      [name]: value,
     });
   };
 
   const handleSaveWorkshop = async () => {
     // 1. Validação básica
-    if (!formData.name || !formData.description || !formData.date || !formData.time) {
+    if (!formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim) {
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
     try {
-      const token = localStorage.getItem('user');
-      
-      const dataInicio = new Date(`${formData.date}T${formData.time}:00Z`);
-      const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); 
+      const dataInicio = new Date(formData.dataInicio + 'T08:00:00Z');
+      const dataFim = new Date(formData.dataFim + 'T10:00:00Z');
 
-      // 3. Montamos o "pacote" usando o que está no formData
+      // 2. Montamos o "pacote" usando o que está no formData
       const payload = {
-        titulo: formData.name,
-        tema: 'Geral',
-        descricao: formData.description,
+        titulo: formData.titulo,
+        tema: formData.tema || 'Geral',
+        descricao: formData.descricao,
         dataInicio: dataInicio.toISOString(),
         dataFim: dataFim.toISOString(),
-        local: formData.location,
-        instrutor: formData.instructor,
-        vagas: Number(formData.maxParticipants)
+        local: formData.local,
+        instrutor: formData.instrutor,
+        vagas: formData.vagas,
+        numeroParticipantes: Number(formData.numeroParticipantes)
       };
 
       if (editingId) {
-        await axios.put(`http://localhost:5000/api/oficinas/${editingId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        console.log(payload)
+        await put(`/oficinas/${editingId}`, payload);
+        successAlert("Oficina Editada com Sucesso!");
       } else {
-        await axios.post('http://localhost:5000/api/oficinas', payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await post("/oficinas", payload);
+        successAlert("Oficina Criada com Sucesso!");
       }
 
       handleCloseModal();
-      fetchOficinas(); 
+      fetchOficinas();
 
     } catch (error) {
       console.error('Erro ao salvar oficina:', error);
@@ -160,15 +143,13 @@ export default function AdminDashboard() {
   const handleDeleteWorkshop = async (id: string) => {
     if (window.confirm('Tem certeza que deseja desativar esta oficina?')) {
       try {
-        const token = localStorage.getItem('user');
-        
-        await axios.patch(`http://localhost:5000/api/oficinas/${id}/desativar`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+
+        await put(`/oficinas/${id}/desativar`);
+        successAlert("Oficina Desativada!");
 
         // MUDA O STATUS EM VEZ DE DELETAR DA TELA
         setWorkshops(workshops.map(w => w.id === id ? { ...w, status: 'INATIVA' } : w));
-        
+
       } catch (error) {
         console.error('Erro ao desativar oficina:', error);
         alert('Erro ao desativar. Verifique o console para mais detalhes.');
@@ -179,21 +160,21 @@ export default function AdminDashboard() {
   const handleActivateWorkshop = async (id: string) => {
     if (window.confirm('Tem certeza que deseja reativar esta oficina?')) {
       try {
-        const token = localStorage.getItem('user');
-        
-        // Bate na rota de ativar que já existe no seu backend
-        await axios.patch(`http://localhost:5000/api/oficinas/${id}/ativar`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await put(`/oficinas/${id}/ativar`, {});
+        successAlert("Oficina Reativada!");
 
         // MUDA O STATUS PARA ATIVA E ELA VOLTA PRA PRIMEIRA ABA
         setWorkshops(workshops.map(w => w.id === id ? { ...w, status: 'ATIVA' } : w));
-        
+
       } catch (error) {
         console.error('Erro ao reativar oficina:', error);
         alert('Erro ao reativar. Verifique o console para mais detalhes.');
       }
     }
+  };
+
+  const getAvailableSpots = (workshop: Oficina) => {
+    return workshop.vagas - workshop.numeroVoluntarios;
   };
 
   return (
@@ -208,17 +189,17 @@ export default function AdminDashboard() {
             + Nova Oficina
           </Button>
         </Col>
-        
+
         {/* NOSSOS NOVOS BOTÕES DE FILTRO */}
         <Col xs={12} md="auto">
           <ButtonGroup>
-            <Button 
+            <Button
               variant={filtroStatus === 'ATIVA' ? 'primary' : 'outline-primary'}
               onClick={() => setFiltroStatus('ATIVA')}
             >
               Oficinas Ativas
             </Button>
-            <Button 
+            <Button
               variant={filtroStatus === 'INATIVA' ? 'secondary' : 'outline-secondary'}
               onClick={() => setFiltroStatus('INATIVA')}
             >
@@ -226,81 +207,98 @@ export default function AdminDashboard() {
             </Button>
           </ButtonGroup>
         </Col>
-      </Row> 
+      </Row>
 
       <Row className="g-4">
         {workshops
           .filter(workshop => workshop.status === filtroStatus)
-          .map(workshop => (
-          <Col key={workshop.id} md={6} lg={4} className="mb-3">  
-            <Card className="workshop-card h-100 shadow-sm">
-              <Card.Body className="d-flex flex-column">
-                <Card.Title className="mb-3">{workshop.name}</Card.Title>
+          .map(workshop => {
+            const available = getAvailableSpots(workshop);
+            const isFull = available === 0;
+            return (
+              <Col key={workshop.id} md={6} lg={4} className="mb-3">
+                <Card className="workshop-card h-100 shadow-sm">
+                  <Card.Body className="d-flex flex-column">
+                    <Card.Title className="mb-3">{workshop.titulo}</Card.Title>
 
-                <div className="workshop-info mb-3 flex-grow-1">
-                  <p className="mb-2">
-                    <strong>Descrição:</strong> {workshop.description}
-                  </p>
-                  <p className="mb-2">
-                    <strong>Data:</strong> {workshop.date ? new Date(workshop.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : ''}
-                  </p>
-                  <p className="mb-2">
-                    <strong>Hora:</strong> {workshop.time}
-                  </p>
-                  <p className="mb-2">
-                    <strong>Local:</strong> {workshop.location}
-                  </p>
-                  <p className="mb-2">
-                    <strong>Instrutor:</strong> {workshop.instructor}
-                  </p>
-                  <p className="mb-2">
-                    <strong>Participantes:</strong> {workshop.currentParticipants}/{workshop.maxParticipants}
-                  </p>
-                  <div className="progress">
-                    <div
-                      className="progress-bar"
-                      role="progressbar"
-                      style={{
-                        width: `${(workshop.currentParticipants / workshop.maxParticipants) * 100}%`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
+                    <div className="workshop-info mb-3 flex-grow-1">
+                      <p className="mb-2">
+                        <strong>Descrição:</strong> {workshop.descricao}
+                      </p>
+                      <p className="mb-2">
+                        <strong>Data Início:</strong> {workshop.dataInicio ? new Date(workshop.dataInicio).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : ''}
+                      </p>
+                      <p className="mb-2">
+                        <strong>Data Fim:</strong> {workshop.dataFim ? new Date(workshop.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : ''}
+                      </p>
+                      <p className="mb-2">
+                        <strong>Local:</strong> {workshop.local}
+                      </p>
+                      <p className="mb-2">
+                        <strong>Tema:</strong> {workshop.tema}
+                      </p>
+                      <p className="mb-2">
+                        <strong>Instrutor:</strong> {workshop.instrutor}
+                      </p>
+                      <p className="mb-2">
+                        <strong>Participantes:</strong> {workshop.numeroParticipantes}
+                      </p>
+                    </div>
+                    <div className="mb-3">
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="small">
+                          <strong>Vagas:</strong> {available} disponível(is)
+                        </span>
+                        <span className="small text-muted">
+                          {workshop.numeroVoluntarios}/{workshop.vagas}
+                        </span>
+                      </div>
+                      <div className="progress">
+                        <div
+                          className={`progress-bar ${isFull ? 'bg-danger' : ''}`}
+                          role="progressbar"
+                          style={{
+                            width: `${(workshop.numeroVoluntarios / workshop.vagas) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
 
-                <div className="d-flex gap-2 mt-3">
-                  <Button
-                    variant="warning"
-                    size="sm"
-                    onClick={() => handleShowModal(workshop)}
-                    className="flex-grow-1"
-                  >
-                    Editar
-                  </Button>
-                  
-                  {workshop.status === 'ATIVA' ? (
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDeleteWorkshop(workshop.id)}
-                      className="flex-grow-1"
-                    >
-                      Desativar
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="success"
-                      size="sm"
-                      onClick={() => handleActivateWorkshop(workshop.id)}
-                      className="flex-grow-1"
-                    >
-                      Ativar Oficina
-                    </Button>
-                  )}
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
+                    <div className="d-flex gap-2 mt-3">
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        onClick={() => handleShowModal(workshop)}
+                        className="flex-grow-1"
+                      >
+                        Editar
+                      </Button>
+
+                      {workshop.status === 'ATIVA' ? (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDeleteWorkshop(workshop.id)}
+                          className="flex-grow-1"
+                        >
+                          Desativar
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="success"
+                          size="sm"
+                          onClick={() => handleActivateWorkshop(workshop.id)}
+                          className="flex-grow-1"
+                        >
+                          Ativar Oficina
+                        </Button>
+                      )}
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            )
+          })}
       </Row>
 
       <Modal show={showModal} onHide={handleCloseModal} size="lg">
@@ -312,11 +310,11 @@ export default function AdminDashboard() {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Nome da Oficina *</Form.Label>
+              <Form.Label>Título da Oficina *</Form.Label>
               <Form.Control
                 type="text"
-                name="name"
-                value={formData.name}
+                name="titulo"
+                value={formData.titulo || ''}
                 onChange={handleInputChange}
                 placeholder="Ex: React Avançado"
               />
@@ -327,32 +325,43 @@ export default function AdminDashboard() {
               <Form.Control
                 as="textarea"
                 rows={3}
-                name="description"
-                value={formData.description}
+                name="descricao"
+                value={formData.descricao || ''}
                 onChange={handleInputChange}
                 placeholder="Descreva a oficina"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Tema</Form.Label>
+              <Form.Control
+                type="text"
+                name="tema"
+                value={formData.tema || 'Geral'}
+                onChange={handleInputChange}
+                placeholder="Ex: Desenvolvimento Web"
               />
             </Form.Group>
 
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Data *</Form.Label>
+                  <Form.Label>Data Início *</Form.Label>
                   <Form.Control
                     type="date"
-                    name="date"
-                    value={formData.date}
+                    name="dataInicio"
+                    value={formData.dataInicio || ''}
                     onChange={handleInputChange}
                   />
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Hora *</Form.Label>
+                  <Form.Label>Data Fim *</Form.Label>
                   <Form.Control
-                    type="time"
-                    name="time"
-                    value={formData.time}
+                    type="date"
+                    name="dataFim"
+                    value={formData.dataFim || ''}
                     onChange={handleInputChange}
                   />
                 </Form.Group>
@@ -363,8 +372,8 @@ export default function AdminDashboard() {
               <Form.Label>Local *</Form.Label>
               <Form.Control
                 type="text"
-                name="location"
-                value={formData.location}
+                name="local"
+                value={formData.local || ''}
                 onChange={handleInputChange}
                 placeholder="Ex: Sala 101"
               />
@@ -374,8 +383,8 @@ export default function AdminDashboard() {
               <Form.Label>Instrutor *</Form.Label>
               <Form.Control
                 type="text"
-                name="instructor"
-                value={formData.instructor}
+                name="instrutor"
+                value={formData.instrutor || ''}
                 onChange={handleInputChange}
                 placeholder="Nome do instrutor"
               />
@@ -384,23 +393,23 @@ export default function AdminDashboard() {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Máximo de Participantes</Form.Label>
+                  <Form.Label>Vagas Disponíveis Voluntários</Form.Label>
                   <Form.Control
                     type="number"
-                    name="maxParticipants"
-                    value={formData.maxParticipants}
+                    name="vagas"
+                    value={formData.vagas}
                     onChange={handleInputChange}
-                    min="1"
+                    min="0"
                   />
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Participantes Atuais</Form.Label>
+                  <Form.Label>Numero Participantes</Form.Label>
                   <Form.Control
                     type="number"
-                    name="currentParticipants"
-                    value={formData.currentParticipants}
+                    name="numeroParticipantes"
+                    value={formData.numeroParticipantes}
                     onChange={handleInputChange}
                     min="0"
                   />

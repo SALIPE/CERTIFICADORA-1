@@ -37,10 +37,10 @@ async function findById(req, res, next) {
 async function update(req, res, next) {
   try {
     const { id } = req.params;
-    const { titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas } = req.body;
+    const { titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas, numeroParticipantes } = req.body;
 
     const oficina = await oficinaService.update(id, {
-      titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas
+      titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas, numeroParticipantes
     });
 
     res.json(oficina);
@@ -101,9 +101,9 @@ async function unenroll(req, res) {
   try {
     const { id } = req.params; // ID da oficina
     const usuarioId = req.user.id; // ID do usuário logado vindo do token
-    
+
     await oficinaService.unenrollVolunteer(id, usuarioId);
-    
+
     res.status(200).json({ message: 'Inscrição cancelada com sucesso.' });
   } catch (error) {
     res.status(error.statusCode || 500).json({ message: error.message });
@@ -113,7 +113,7 @@ async function unenroll(req, res) {
 async function listarMinhasInscricoes(req, res) {
   try {
     // O ID do usuário deve vir do seu middleware de autenticação (JWT)
-    const usuarioId = req.user.id; 
+    const usuarioId = req.user.id;
     const inscricoes = await oficinaService.getInscricoesUsuario(usuarioId);
     res.status(200).json(inscricoes);
   } catch (error) {

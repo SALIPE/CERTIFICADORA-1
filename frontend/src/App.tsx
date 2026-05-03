@@ -44,7 +44,7 @@ export default function App() {
           </Route>
 
           <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="*" element={<Navigate to="/login" />} />
+          {/* <Route path="*" element={<Navigate to="/login" />} /> */}
         </Routes>
       </UserProvider>
     </HashRouter>

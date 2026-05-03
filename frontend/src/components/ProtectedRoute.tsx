@@ -1,4 +1,5 @@
-import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { UserRole } from '../types/User';
 
@@ -11,11 +12,27 @@ export default function ProtectedRoute({
   children,
   requiredRole,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useUser();
+  const navigate = useNavigate();
+  const { user } = useUser()
+  useEffect(() => {
+    const storedUser = localStorage.getItem('currentUser');
+    console.log(storedUser)
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log(!parsedUser)
+        if (!parsedUser) navigate("/login");
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+      } catch {
+        localStorage.removeItem('currentUser');
+        navigate("/login")
+      }
+    } else navigate("/login")
+  }, [])
+
+
+
+
 
   if (requiredRole && user?.perfil !== requiredRole) {
     // Redirecionar para o dashboard apropriado se tentar acessar rota de outro tipo

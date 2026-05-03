@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'; // <-- Adicionamos useEffect
-import axios from 'axios';
+import { useEffect, useState } from 'react';
 import { Alert, Badge, Button, Card, Col, Container, Row } from 'react-bootstrap';
-//import '../../assets/css/AdminDashboard.css';
+import { deleteCmnd, get, post } from '../../services/WebService';
 import { Oficina } from '../../types/Oficina';
 
 export default function Eventos() {
@@ -10,7 +9,6 @@ export default function Eventos() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // 1. Chama a função de buscar oficinas assim que a tela abre
   useEffect(() => {
     fetchOficinas();
     fetchMinhasInscricoes();
@@ -18,46 +16,37 @@ export default function Eventos() {
 
   const fetchOficinas = async () => {
     try {
-      const token = localStorage.getItem('user');
-      const response = await axios.get('http://localhost:5000/api/oficinas', {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await get("/oficinas")
+      console.log(response)
+      const oficinasDoBanco = response.map((dbOficina: any) => {
+        const dataInicio = dbOficina.dataInicio || dbOficina.dataInicio;
+        return {
+          id: dbOficina.id,
+          titulo: dbOficina.titulo,
+          tema: dbOficina.tema || 'Geral',
+          descricao: dbOficina.descricao || '',
+          dataInicio: dataInicio ? dataInicio.split('T')[0] : '',
+          dataFim: dbOficina.dataFim ? dbOficina.dataFim.split('T')[0] : '',
+          local: dbOficina.local || 'Local a definir',
+          vagas: dbOficina.vagas,
+          numeroVoluntarios: dbOficina.numeroVoluntarios,
+          numeroParticipantes: dbOficina.numeroParticipantes || 0,
+          instrutor: dbOficina.instrutor || 'Instrutor TEDI',
+          status: dbOficina.status || 'ATIVA'
+        };
       });
-      
-      const oficinasDoBanco = response.data
-        .filter((dbOficina: any) => dbOficina.status === 'ATIVA')
-        .map((dbOficina: any) => {
-          const dataISO = dbOficina.dataInicio || dbOficina.data_inicio;
-          
-          return {
-            id: dbOficina.id,
-            name: dbOficina.titulo,
-            description: dbOficina.descricao || '',
-            date: dataISO ? dataISO.split('T')[0] : '', 
-            time: dataISO ? dataISO.split('T')[1].substring(0, 5) : '', 
-            location: dbOficina.local || 'Local a definir',
-            maxParticipants: Number(dbOficina.vagas) || 30,         
-            currentParticipants: dbOficina.numeroParticipantes || 0,
-            instructor: dbOficina.instrutor || 'Instrutor TEDI'
-          };
-        });
 
       setWorkshops(oficinasDoBanco);
     } catch (error) {
-      console.error('Erro ao buscar as oficinas reais:', error);
+      console.error('Erro ao buscar oficinas:', error);
     }
   };
 
   const fetchMinhasInscricoes = async () => {
     try {
-      const token = localStorage.getItem('user');
-      if (!token) return;
-
-      const response = await axios.get('http://localhost:5000/api/oficinas/minhas-inscricoes', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Salva o array de IDs que veio do Back-end no estado
-      setRegisteredWorkshops(response.data);
+      const response = await get('/oficinas/minhas-inscricoes');
+      console.log(response)
+      setRegisteredWorkshops(response);
     } catch (error) {
       console.error('Erro ao buscar as inscrições do usuário:', error);
     }
@@ -70,22 +59,19 @@ export default function Eventos() {
     }
 
     try {
-      const token = localStorage.getItem('user');
-      
+
       // Manda o pedido de inscrição para o Back
-      await axios.post(`http://localhost:5000/api/oficinas/${workshopId}/inscrever`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await post(`/oficinas/${workshopId}/inscrever`, {});
 
       // Se der sucesso, atualiza a tela
       setRegisteredWorkshops([...registeredWorkshops, workshopId]);
       setSuccessMessage(`Você se inscreveu com sucesso em "${workshopName}"!`);
       setShowSuccess(true);
 
-      setWorkshops(prevWorkshops => 
-        prevWorkshops.map(w => 
-          w.id === workshopId 
-            ? { ...w, currentParticipants: w.currentParticipants + 1 }
+      setWorkshops(prevWorkshops =>
+        prevWorkshops.map(w =>
+          w.id === workshopId
+            ? { ...w, numeroParticipantes: w.numeroParticipantes + 1 }
             : w
         )
       );
@@ -93,7 +79,7 @@ export default function Eventos() {
       setTimeout(() => {
         setShowSuccess(false);
       }, 3000);
-      
+
     } catch (error: any) {
       console.error('Erro ao se inscrever:', error);
       // Se o Back avisar que já está inscrito, mostra o erro
@@ -111,21 +97,17 @@ export default function Eventos() {
     }
 
     try {
-      const token = localStorage.getItem('user');
-      
-      // Manda o pedido de cancelamento para o Back (usando DELETE)
-      await axios.delete(`http://localhost:5000/api/oficinas/${workshopId}/desinscrever`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+
+      await deleteCmnd(`/oficinas/${workshopId}/desinscrever`);
 
       // Se der sucesso, tira o ID da lista de inscritos local
       setRegisteredWorkshops(prev => prev.filter(id => id !== workshopId));
-      
+
       // Atualiza a tela: Diminui 1 participante para liberar a vaga visualmente
-      setWorkshops(prevWorkshops => 
-        prevWorkshops.map(w => 
-          w.id === workshopId 
-            ? { ...w, currentParticipants: Math.max(0, w.currentParticipants - 1) }
+      setWorkshops(prevWorkshops =>
+        prevWorkshops.map(w =>
+          w.id === workshopId
+            ? { ...w, numeroVoluntarios: Math.max(0, w.numeroVoluntarios - 1) }
             : w
         )
       );
@@ -133,7 +115,7 @@ export default function Eventos() {
       setSuccessMessage(`Inscrição em "${workshopName}" cancelada com sucesso!`);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-      
+
     } catch (error: any) {
       console.error('Erro ao cancelar inscrição:', error);
       alert('Erro ao cancelar inscrição. Tente novamente.');
@@ -143,7 +125,7 @@ export default function Eventos() {
   const isRegistered = (workshopId: string) => registeredWorkshops.includes(workshopId);
 
   const getAvailableSpots = (workshop: Oficina) => {
-    return workshop.maxParticipants - workshop.currentParticipants;
+    return workshop.vagas - workshop.numeroVoluntarios;
   };
 
   return (
@@ -189,7 +171,7 @@ export default function Eventos() {
                 <Card className="workshop-card h-100 shadow-sm workshop-volunteer">
                   <Card.Body className="d-flex flex-column">
                     <div className="d-flex justify-content-between align-items-start mb-2">
-                      <Card.Title className="mb-0">{workshop.name}</Card.Title>
+                      <Card.Title className="mb-0">{workshop.titulo}</Card.Title>
                       {isFull && (
                         <Badge bg="danger" className="ms-2">
                           Cheio
@@ -204,19 +186,22 @@ export default function Eventos() {
 
                     <div className="workshop-info mb-3 flex-grow-1">
                       <p className="mb-2">
-                        <strong>Descrição:</strong> {workshop.description}
+                        <strong>Descrição:</strong> {workshop.descricao}
                       </p>
                       <p className="mb-2">
-                        <strong>Data:</strong> {workshop.date ? new Date(workshop.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : ''}
+                        <strong>Data Início:</strong> {workshop.dataInicio ? new Date(workshop.dataInicio).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : ''}
                       </p>
                       <p className="mb-2">
-                        <strong>Hora:</strong> {workshop.time}
+                        <strong>Data Fim:</strong> {workshop.dataFim ? new Date(workshop.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : ''}
                       </p>
                       <p className="mb-2">
-                        <strong>Local:</strong> {workshop.location}
+                        <strong>Local:</strong> {workshop.local}
                       </p>
                       <p className="mb-2">
-                        <strong>Instrutor:</strong> {workshop.instructor}
+                        <strong>Tema:</strong> {workshop.tema}
+                      </p>
+                      <p className="mb-2">
+                        <strong>Instrutor:</strong> {workshop.instrutor}
                       </p>
 
                       <div className="mb-3">
@@ -225,7 +210,7 @@ export default function Eventos() {
                             <strong>Vagas:</strong> {available} disponível(is)
                           </span>
                           <span className="small text-muted">
-                            {workshop.currentParticipants}/{workshop.maxParticipants}
+                            {workshop.numeroVoluntarios}/{workshop.vagas}
                           </span>
                         </div>
                         <div className="progress">
@@ -233,7 +218,7 @@ export default function Eventos() {
                             className={`progress-bar ${isFull ? 'bg-danger' : ''}`}
                             role="progressbar"
                             style={{
-                              width: `${(workshop.currentParticipants / workshop.maxParticipants) * 100}%`,
+                              width: `${(workshop.numeroVoluntarios / workshop.vagas) * 100}%`,
                             }}
                           ></div>
                         </div>
@@ -242,7 +227,7 @@ export default function Eventos() {
                     {isUserRegistered ? (
                       <Button
                         variant="danger"
-                        onClick={() => handleUnregister(workshop.id, workshop.name)}
+                        onClick={() => handleUnregister(workshop.id, workshop.titulo)}
                         className="w-100"
                       >
                         Cancelar Inscrição
@@ -250,7 +235,7 @@ export default function Eventos() {
                     ) : (
                       <Button
                         variant={isFull ? 'secondary' : 'primary'}
-                        onClick={() => handleRegister(workshop.id, workshop.name)}
+                        onClick={() => handleRegister(workshop.id, workshop.titulo)}
                         disabled={isFull}
                         className="w-100"
                       >
