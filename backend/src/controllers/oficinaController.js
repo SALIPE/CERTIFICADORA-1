@@ -1,11 +1,18 @@
 const oficinaService = require('../services/oficinaService');
 
+// No oficinaController.js
 async function create(req, res, next) {
   try {
-    const result = await oficinaService.create(req.body, req.user.id);
-    return res.status(201).json(result);
+    const { titulo, tema, descricao, dataInicio, dataFim, local, instrutor, vagas } = req.body;
+    const criadoPor = req.user.id;
+
+    const oficina = await oficinaService.create({
+      titulo, tema, descricao, dataInicio, dataFim, local, instrutor, vagas
+    }, criadoPor);
+
+    res.status(201).json(oficina);
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 
@@ -29,10 +36,16 @@ async function findById(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const result = await oficinaService.update(req.params.id, req.body);
-    return res.status(200).json(result);
+    const { id } = req.params;
+    const { titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas, numeroParticipantes } = req.body;
+
+    const oficina = await oficinaService.update(id, {
+      titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas, numeroParticipantes
+    });
+
+    res.json(oficina);
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 
@@ -72,6 +85,42 @@ async function listVolunteers(req, res, next) {
   }
 }
 
+async function enroll(req, res, next) {
+  try {
+    const { id } = req.params; // ID da oficina
+    const usuarioId = req.user.id; // Pegamos o ID do usuário que está logado pelo token
+
+    const result = await oficinaService.enrollVolunteer(id, usuarioId);
+    return res.status(201).json(result);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function unenroll(req, res) {
+  try {
+    const { id } = req.params; // ID da oficina
+    const usuarioId = req.user.id; // ID do usuário logado vindo do token
+
+    await oficinaService.unenrollVolunteer(id, usuarioId);
+
+    res.status(200).json({ message: 'Inscrição cancelada com sucesso.' });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ message: error.message });
+  }
+}
+
+async function listarMinhasInscricoes(req, res) {
+  try {
+    // O ID do usuário deve vir do seu middleware de autenticação (JWT)
+    const usuarioId = req.user.id;
+    const inscricoes = await oficinaService.getInscricoesUsuario(usuarioId);
+    res.status(200).json(inscricoes);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar inscrições." });
+  }
+}
+
 module.exports = {
   create,
   list,
@@ -80,5 +129,8 @@ module.exports = {
   activate,
   deactivate,
   finish,
-  listVolunteers
+  listVolunteers,
+  enroll,
+  listarMinhasInscricoes,
+  unenroll
 };

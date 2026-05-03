@@ -16,41 +16,67 @@ export default function AdminLayout() {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <Navbar bg="dark" variant="dark" expand="lg" sticky="top">
+      
+      {/* HEADER COMEÇA AQUI */}
+      <Navbar bg="dark" variant="dark" expand="lg" sticky="top" className="shadow-sm py-3">
         <Container fluid>
-          <Navbar.Brand href="#home">TEDI</Navbar.Brand>
+          <Navbar.Brand href="#home" className="fw-bold fs-3 text-primary">
+            TEDI <span className="text-light fs-6 fw-normal ms-2">| Painel Administrativo</span>
+          </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
               {/* Espaço para navegação adicional se necessário */}
             </Nav>
-            <Nav>
-              <Nav.Item className="d-flex align-items-center text-light me-3">
+            <Nav className="align-items-center">
+              <Nav.Item className="text-light me-4 fw-medium">
                 {user ? `Olá, ${user.nome}` : "Usuário não logado"}
               </Nav.Item>
               <NavDropdown
-                title={<i className="bi bi-house"></i>}
+                title={<span className="btn btn-outline-light btn-sm">Menu Admin</span>}
                 id="basic-nav-dropdown"
                 align="end"
               >
                 <NavDropdown.Item onClick={handleEditUser}>
-                  Editar Usuário
+                  <i className="bi bi-person-gear me-2"></i> Editar Perfil
                 </NavDropdown.Item>
-                <NavDropdown.Item onClick={handleLogout}>
-                  Logout
+                <NavDropdown.Divider />
+                <NavDropdown.Item onClick={handleLogout} className="text-danger">
+                  <i className="bi bi-box-arrow-right me-2"></i> Sair do Sistema
                 </NavDropdown.Item>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <Container fluid className="flex-grow-1">
+      {/* HEADER TERMINA AQUI */}
+
+      <Container fluid className="flex-grow-1 p-4" style={{ backgroundColor: '#f8f9fa' }}>
         <Outlet />
       </Container>
-      <footer className="bg-dark text-light text-center py-3 mt-auto">
-        Footer
+
+      {/* FOOTER COMEÇA AQUI */}
+      <footer className="bg-dark text-light py-4 mt-auto border-top border-primary border-3">
+        <Container>
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div className="mb-3 mb-md-0">
+              <h5 className="text-primary fw-bold mb-0">TEDI</h5>
+              <small className="text-muted">Transformando a Educação de forma Dinâmica e Inclusiva</small>
+            </div>
+            
+            <div className="text-center text-md-end">
+              <p className="mb-0 small text-muted">
+                &copy; {new Date().getFullYear()} TEDI. Todos os direitos reservados.
+              </p>
+              <p className="mb-0 small text-muted">
+                Suporte: <a href="mailto:suporte@tedi.com" className="text-primary text-decoration-none">suporte@tedi.com</a>
+              </p>
+            </div>
+          </div>
+        </Container>
       </footer>
+      {/* FOOTER TERMINA AQUI */}
+
     </div>
   );
 }
-

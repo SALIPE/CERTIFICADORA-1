@@ -31,6 +31,11 @@ export async function post(url, body) {
         .then(handleJsonResponse)
 }
 
+export async function deleteCmnd(url) {
+    return internalPost(url, null, true, getHeaders(url), 'DELETE')
+        .then(handleJsonResponse)
+}
+
 export async function put(url, body) {
     return internalPost(url, body, true, getHeaders(url), 'PUT')
         .then(handleJsonResponse)
@@ -81,14 +86,6 @@ export function getHeaders(url) {
     };
     return header
 }
-
-function isAuthenticate(response) {
-    if (response.status === 401 || response.status === 403) {
-        cleanStorage();
-        window.location.assign("/");
-    }
-}
-
 
 export function cleanStorage() {
     sessionStorage.removeItem('user');

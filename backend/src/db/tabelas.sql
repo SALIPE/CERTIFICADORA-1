@@ -46,14 +46,17 @@ CREATE TABLE IF NOT EXISTS oficina (
     titulo VARCHAR(150) NOT NULL,
     tema VARCHAR(150) NOT NULL,
     descricao TEXT,
-    inicio TIMESTAMP NOT NULL,
-    fim TIMESTAMP NOT NULL,
+    data_inicio TIMESTAMP NOT NULL, -- Nome corrigido
+    data_fim TIMESTAMP NOT NULL, -- Nome corrigido
+    local VARCHAR(255) DEFAULT 'A definir', -- Nova coluna do service
+    instrutor VARCHAR(150) DEFAULT 'Instrutor TEDI', -- Nova coluna do service
+    vagas INTEGER DEFAULT 30, -- Nova coluna do service
     num_participantes INTEGER DEFAULT 0,
     status status_oficina NOT NULL DEFAULT 'ATIVA',
     criado_por UUID REFERENCES usuario (id),
     criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
     atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
-    CONSTRAINT oficina_datas_validas CHECK (fim >= inicio)
+    CONSTRAINT oficina_datas_validas CHECK (data_fim >= data_inicio) -- Corrigido para os novos nomes
 );
 
 CREATE TABLE IF NOT EXISTS usuario_oficina (
@@ -61,6 +64,7 @@ CREATE TABLE IF NOT EXISTS usuario_oficina (
     usuario_id UUID NOT NULL REFERENCES usuario (id),
     oficina_id UUID NOT NULL REFERENCES oficina (id),
     presente BOOLEAN NOT NULL DEFAULT TRUE,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE, -- Nova coluna
     criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
     atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT usuario_oficina_unique UNIQUE (usuario_id, oficina_id)
