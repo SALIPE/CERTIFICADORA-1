@@ -151,65 +151,68 @@ export default function UsuarioCreateEdit() {
   return (
     <Container fluid className="admin-dashboard py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Gerenciar Usuários</h2>
-        <Button variant="success" onClick={handleCreateNew}>
-          + Criar Usuário
+        <h2 className="text-primary fw-bold">Gerenciar Usuários</h2>
+        <Button variant="success" onClick={handleCreateNew} className="shadow-sm d-inline-flex align-items-center">
+          <i className="bi bi-plus-lg me-2"></i> Criar Usuário
         </Button>
       </div>
 
-      <Table striped bordered hover responsive>
-        <thead className="table-dark">
-          <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Perfil</th>
-            <th>Ações</th>
-            <th>Resetar Senha</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuariosList.map(user => (
-            <tr key={user.id}>
-              <td>{user.nome}</td>
-              <td>{user.email}</td>
-              <td>
-                <span className={`badge ${user.perfil === 'ADMIN' ? 'bg-danger' : 'bg-primary'}`}>
-                  {user.perfil}
-                </span>
-              </td>
-              <td>
-                <Button
-                  variant="warning"
-                  size="sm"
-                  onClick={() => handleEdit(user)}
-                  className="me-2">
-                  Editar
-                </Button>
-              </td>
-              <td>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleResetPassword(user)}>
-                  Resetar
-                </Button>
-              </td>
+      <div className="shadow-sm rounded overflow-hidden">
+        <Table striped bordered hover responsive className="mb-0 bg-white">
+          <thead className="table-dark">
+            <tr>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Perfil</th>
+              <th>Ações</th>
+              <th>Resetar Senha</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {usuariosList.map(user => (
+              <tr key={user.id} className="align-middle">
+                <td>{user.nome}</td>
+                <td>{user.email}</td>
+                <td>
+                  <span className={`badge ${user.perfil === 'ADMIN' ? 'bg-danger' : 'bg-primary'}`}>
+                    {user.perfil}
+                  </span>
+                </td>
+                <td>
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    onClick={() => handleEdit(user)}
+                    className="me-2 d-inline-flex align-items-center text-dark fw-medium">
+                    <i className="bi bi-pencil-square me-1"></i> Editar
+                  </Button>
+                </td>
+                <td>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleResetPassword(user)}
+                    className="d-inline-flex align-items-center">
+                    <i className="bi bi-shield-lock me-1"></i> Resetar
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
-      {/* Modal do Formulário */}
+      {/* MODAL DO FORMULÁRIO */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>
-            {isEditing ? 'Editar Usuário' : 'Criar Novo Usuário'}
+          <Modal.Title className="text-primary fw-bold">
+            {isEditing ? <><i className="bi bi-person-gear me-2"></i>Editar Usuário</> : <><i className="bi bi-person-plus-fill me-2"></i>Criar Novo Usuário</>}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
-              <Form.Label>Nome</Form.Label>
+              <Form.Label className="fw-medium">Nome</Form.Label>
               <Form.Control
                 type="text"
                 name="nome"
@@ -221,7 +224,7 @@ export default function UsuarioCreateEdit() {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
+              <Form.Label className="fw-medium">Email</Form.Label>
               <Form.Control
                 type="email"
                 name="email"
@@ -232,8 +235,8 @@ export default function UsuarioCreateEdit() {
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Perfil</Form.Label>
+            <Form.Group className="mb-4">
+              <Form.Label className="fw-medium">Perfil</Form.Label>
               <Form.Select
                 name="perfil"
                 value={formData.perfil}
@@ -250,15 +253,19 @@ export default function UsuarioCreateEdit() {
                 variant="primary"
                 type="submit"
                 disabled={loading}
-                className="flex-grow-1"
+                className="flex-grow-1 shadow-sm d-inline-flex justify-content-center align-items-center"
               >
-                {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar'}
+                {loading ? (
+                  <><span className="spinner-border spinner-border-sm me-2"></span> Salvando...</>
+                ) : (
+                  <><i className="bi bi-check-lg me-1"></i> {isEditing ? 'Atualizar' : 'Criar'}</>
+                )}
               </Button>
               <Button
                 variant="secondary"
                 onClick={handleCloseModal}
                 disabled={loading}
-                className="flex-grow-1"
+                className="flex-grow-1 shadow-sm"
               >
                 Cancelar
               </Button>
@@ -267,15 +274,17 @@ export default function UsuarioCreateEdit() {
         </Modal.Body>
       </Modal>
 
-      {/* Modal de Reset de Senha */}
+      {/* MODAL PARA RESET DA SENHA */}
       <Modal show={showModalNovaSenha} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Resetar Senha</Modal.Title>
+          <Modal.Title className="text-primary fw-bold">
+            <i className="bi bi-key-fill me-2"></i> Resetar Senha
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleResetSubmit}>
             <Form.Group className="mb-3">
-              <Form.Label>Nova Senha</Form.Label>
+              <Form.Label className="fw-medium">Nova Senha</Form.Label>
               <Form.Control
                 type="password"
                 name="novaSenha"
@@ -286,8 +295,8 @@ export default function UsuarioCreateEdit() {
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Confirmar Nova Senha</Form.Label>
+            <Form.Group className="mb-4">
+              <Form.Label className="fw-medium">Confirmar Nova Senha</Form.Label>
               <Form.Control
                 type="password"
                 name="confirmarSenha"
@@ -303,15 +312,19 @@ export default function UsuarioCreateEdit() {
                 variant="primary"
                 type="submit"
                 disabled={loading}
-                className="flex-grow-1"
+                className="flex-grow-1 shadow-sm d-inline-flex justify-content-center align-items-center"
               >
-                {loading ? 'Resetando...' : 'Resetar Senha'}
+                {loading ? (
+                  <><span className="spinner-border spinner-border-sm me-2"></span> Resetando...</>
+                ) : (
+                  <><i className="bi bi-check-lg me-1"></i> Resetar Senha</>
+                )}
               </Button>
               <Button
                 variant="secondary"
                 onClick={handleCloseModal}
                 disabled={loading}
-                className="flex-grow-1"
+                className="flex-grow-1 shadow-sm"
               >
                 Cancelar
               </Button>
@@ -322,5 +335,3 @@ export default function UsuarioCreateEdit() {
     </Container>
   );
 }
-
-

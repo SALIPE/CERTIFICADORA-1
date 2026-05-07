@@ -17,7 +17,7 @@ export default function AdminLayout() {
   return (
     <div className="d-flex flex-column min-vh-100">
       
-      {/* HEADER COMEÇA AQUI */}
+      {/* HEADER INICIO*/}
       <Navbar bg="dark" variant="dark" expand="lg" sticky="top" className="shadow-sm py-3">
         <Container fluid>
           <Navbar.Brand href="#home" className="fw-bold fs-3 text-primary">
@@ -26,7 +26,7 @@ export default function AdminLayout() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              {/* Espaço para navegação adicional se necessário */}
+              {/* Espaço para navegação adicional */}
             </Nav>
             <Nav className="align-items-center">
               <Nav.Item className="text-light me-4 fw-medium">
@@ -49,13 +49,13 @@ export default function AdminLayout() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      {/* HEADER TERMINA AQUI */}
+      {/* HEADER FIM */}
 
       <Container fluid className="flex-grow-1 p-4" style={{ backgroundColor: '#f8f9fa' }}>
         <Outlet />
       </Container>
 
-      {/* FOOTER COMEÇA AQUI */}
+      {/* FOOTER INICIO */}
       <footer className="bg-dark text-light py-4 mt-auto border-top border-primary border-3">
         <Container>
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-center">
@@ -75,7 +75,7 @@ export default function AdminLayout() {
           </div>
         </Container>
       </footer>
-      {/* FOOTER TERMINA AQUI */}
+      {/* FOOTER FIM */}
 
     </div>
   );
