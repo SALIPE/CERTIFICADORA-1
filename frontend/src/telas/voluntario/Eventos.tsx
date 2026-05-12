@@ -34,8 +34,7 @@ export default function Eventos() {
           instrutor: dbOficina.instrutor || 'Instrutor TEDI',
           status: dbOficina.status || 'ATIVA'
         };
-      });
-
+      }).filter((workshop: Oficina) => workshop.status === 'ATIVA');
       setWorkshops(oficinasDoBanco);
     } catch (error) {
       console.error('Erro ao buscar oficinas:', error);

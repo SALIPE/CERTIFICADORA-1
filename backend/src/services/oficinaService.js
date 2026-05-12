@@ -81,7 +81,10 @@ async function findById(id) {
   return office;
 }
 
-async function update(id, { titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas, numeroParticipantes }) {
+async function update(id, {
+  titulo, tema, descricao, dataInicio, dataFim,
+  status, local, instrutor, vagas, numeroParticipantes }) {
+
   await findById(id);
 
   const query = `
@@ -101,7 +104,8 @@ async function update(id, { titulo, tema, descricao, dataInicio, dataFim, status
   `;
 
   const { rows } = await db.query(query,
-    [id, titulo, tema, descricao, dataInicio, dataFim, status, local, instrutor, vagas, numeroParticipantes]);
+    [id, titulo, tema, descricao, dataInicio, dataFim, status, local,
+      instrutor, vagas, numeroParticipantes]);
 
   return mapOffice(rows[0]);
 }
@@ -143,12 +147,11 @@ async function listVolunteers(oficinaId) {
   return rows;
 }
 
-async function enrollVolunteer(oficinaId, usuarioId) {
-  // 1. Verifica se a oficina existe
+async function inscreverVoluntario(oficinaId, usuarioId) {
   await findById(oficinaId);
 
-  // 2. Verifica se o usuário já não está inscrito
-  const checkQuery = 'SELECT id FROM usuario_oficina WHERE oficina_id = $1 AND usuario_id = $2';
+  const checkQuery = `SELECT id FROM usuario_oficina 
+          WHERE oficina_id = $1 AND usuario_id = $2`;
   const checkResult = await db.query(checkQuery, [oficinaId, usuarioId]);
 
   if (checkResult.rows.length > 0) {
@@ -157,7 +160,6 @@ async function enrollVolunteer(oficinaId, usuarioId) {
     throw error;
   }
 
-  // 3. Insere a inscrição
   const query = `
     INSERT INTO usuario_oficina (oficina_id, usuario_id, ativo)
     VALUES ($1, $2, true)
@@ -168,9 +170,9 @@ async function enrollVolunteer(oficinaId, usuarioId) {
   return rows[0];
 }
 
-async function unenrollVolunteer(oficinaId, usuarioId) {
-  // Vamos deletar a linha da tabela para liberar a vaga e não dar conflito se ele tentar se inscrever de novo
-  const query = 'DELETE FROM usuario_oficina WHERE oficina_id = $1 AND usuario_id = $2 RETURNING *';
+async function desinscreverVoluntario(oficinaId, usuarioId) {
+  const query = `DELETE FROM usuario_oficina
+          WHERE oficina_id = $1 AND usuario_id = $2 RETURNING *`;
   const { rows } = await db.query(query, [oficinaId, usuarioId]);
 
   if (rows.length === 0) {

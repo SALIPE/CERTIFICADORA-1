@@ -87,10 +87,10 @@ async function listVolunteers(req, res, next) {
 
 async function enroll(req, res, next) {
   try {
-    const { id } = req.params; // ID da oficina
-    const usuarioId = req.user.id; // Pegamos o ID do usuário que está logado pelo token
+    const { id } = req.params;
+    const usuarioId = req.user.id;
 
-    const result = await oficinaService.enrollVolunteer(id, usuarioId);
+    const result = await oficinaService.inscreverVoluntario(id, usuarioId);
     return res.status(201).json(result);
   } catch (error) {
     return next(error);
@@ -99,10 +99,10 @@ async function enroll(req, res, next) {
 
 async function unenroll(req, res) {
   try {
-    const { id } = req.params; // ID da oficina
-    const usuarioId = req.user.id; // ID do usuário logado vindo do token
+    const { id } = req.params;
+    const usuarioId = req.user.id;
 
-    await oficinaService.unenrollVolunteer(id, usuarioId);
+    await oficinaService.desinscreverVoluntario(id, usuarioId);
 
     res.status(200).json({ message: 'Inscrição cancelada com sucesso.' });
   } catch (error) {
@@ -112,7 +112,6 @@ async function unenroll(req, res) {
 
 async function listarMinhasInscricoes(req, res) {
   try {
-    // O ID do usuário deve vir do seu middleware de autenticação (JWT)
     const usuarioId = req.user.id;
     const inscricoes = await oficinaService.getInscricoesUsuario(usuarioId);
     res.status(200).json(inscricoes);
