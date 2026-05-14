@@ -56,12 +56,10 @@ export default function Eventos() {
       alert('Você já está inscrito nesta oficina!');
       return;
     }
-
     try {
 
       // Manda o pedido de inscrição para o Back
       await post(`/oficinas/${workshopId}/inscrever`, {});
-
       // Se der sucesso, atualiza a tela
       setRegisteredWorkshops([...registeredWorkshops, workshopId]);
       setSuccessMessage(`Você se inscreveu com sucesso em "${workshopName}"!`);
@@ -74,7 +72,6 @@ export default function Eventos() {
             : w
         )
       );
-
       setTimeout(() => {
         setShowSuccess(false);
       }, 3000);

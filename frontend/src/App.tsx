@@ -11,6 +11,7 @@ import LoginPage from './telas/Login';
 import AdminDashboard from './telas/admin/AdminDashboard';
 import UsuarioCreateEdit from './telas/admin/UsuarioCreateEdit';
 import Eventos from './telas/voluntario/Eventos';
+import VoluntarioEdit from './telas/voluntario/VoluntarioEdit';
 
 export const MySwal = withReactContent(Swal);
 
@@ -41,6 +42,7 @@ export default function App() {
               </ProtectedRoute>
             }>
             <Route path="/voluntario/eventos" element={<Eventos />} />
+            <Route path="/voluntario/perfil" element={<VoluntarioEdit />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/login" />} />

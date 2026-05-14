@@ -16,7 +16,7 @@ export default function AdminLayout() {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      
+
       {/* HEADER INICIO*/}
       <Navbar bg="dark" variant="dark" expand="lg" sticky="top" className="shadow-sm py-3">
         <Container fluid>
@@ -38,7 +38,7 @@ export default function AdminLayout() {
                 align="end"
               >
                 <NavDropdown.Item onClick={handleEditUser}>
-                  <i className="bi bi-person-gear me-2"></i> Editar Perfil
+                  <i className="bi bi-person-gear me-2"></i> Editar Usuários
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogout} className="text-danger">
@@ -63,7 +63,7 @@ export default function AdminLayout() {
               <h5 className="text-primary fw-bold mb-0">TEDI</h5>
               <small className="text-muted">Transformando a Educação de forma Dinâmica e Inclusiva</small>
             </div>
-            
+
             <div className="text-center text-md-end">
               <p className="mb-0 small text-muted">
                 &copy; {new Date().getFullYear()} TEDI. Todos os direitos reservados.

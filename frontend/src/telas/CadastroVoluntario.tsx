@@ -30,38 +30,31 @@ export default function CadastroVoluntario() {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
       // Validações
       if (!formData.name.trim()) {
         throw new Error('Nome é obrigatório');
       }
-
       if (formData.name.trim().length < 3) {
         throw new Error('Nome deve ter pelo menos 3 caracteres');
       }
-
       if (!formData.email.trim()) {
         throw new Error('Email é obrigatório');
       }
-
       if (!formData.password) {
         throw new Error('Senha é obrigatória');
       }
-
       if (formData.password !== formData.confirmPassword) {
         throw new Error('Senhas não conferem');
       }
-
       // Registrar
-      const cadastrou = await register(formData.name, formData.email, formData.password);
-
+      const cadastrou = await register(
+        formData.name, formData.email, formData.password);
       if (cadastrou) {
         successAlert("Cadastro concluído", () => navigate('/login'));
       } else {
         errorAlert("Erro ao se cadastrar, tente novamente mais tarde!")
       }
-
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao registrar');
     } finally {

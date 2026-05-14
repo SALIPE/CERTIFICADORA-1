@@ -99,17 +99,13 @@ export default function AdminDashboard() {
   };
 
   const handleSaveWorkshop = async () => {
-    // 1. Validação básica
     if (!formData.titulo || !formData.descricao || !formData.dataInicio || !formData.dataFim) {
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
-
     try {
       const dataInicio = new Date(formData.dataInicio + 'T08:00:00Z');
       const dataFim = new Date(formData.dataFim + 'T10:00:00Z');
-
-      // 2. Montamos o "pacote" usando o que está no formData
       const payload = {
         titulo: formData.titulo,
         tema: formData.tema || 'Geral',
@@ -121,7 +117,6 @@ export default function AdminDashboard() {
         vagas: formData.vagas,
         numeroParticipantes: Number(formData.numeroParticipantes)
       };
-
       if (editingId) {
         console.log(payload)
         await put(`/oficinas/${editingId}`, payload);
@@ -130,10 +125,8 @@ export default function AdminDashboard() {
         await post("/oficinas", payload);
         successAlert("Oficina Criada com Sucesso!");
       }
-
       handleCloseModal();
       fetchOficinas();
-
     } catch (error) {
       console.error('Erro ao salvar oficina:', error);
       alert('Erro ao salvar a oficina. Verifique o console e o terminal do Back-end.');
@@ -143,13 +136,10 @@ export default function AdminDashboard() {
   const handleDeleteWorkshop = async (id: string) => {
     if (window.confirm('Tem certeza que deseja desativar esta oficina?')) {
       try {
-
         await put(`/oficinas/${id}/desativar`);
         successAlert("Oficina Desativada!");
-
         // MUDA O STATUS EM VEZ DE DELETAR DA TELA
         setWorkshops(workshops.map(w => w.id === id ? { ...w, status: 'INATIVA' } : w));
-
       } catch (error) {
         console.error('Erro ao desativar oficina:', error);
         alert('Erro ao desativar. Verifique o console para mais detalhes.');

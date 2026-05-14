@@ -192,7 +192,7 @@ module.exports = {
   deactivate,
   finish,
   listVolunteers,
-  enrollVolunteer,
+  inscreverVoluntario,
   getInscricoesUsuario,
-  unenrollVolunteer
+  desinscreverVoluntario
 };
