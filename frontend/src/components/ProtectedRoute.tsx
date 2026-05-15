@@ -40,8 +40,6 @@ export default function ProtectedRoute({
       return <Navigate to="/admin/dashboard" replace />;
     } else if (user?.perfil === 'VOLUNTARIO') {
       return <Navigate to="/voluntario/eventos" replace />;
-    } else {
-      return <Navigate to="/login" replace />;
     }
   }
 

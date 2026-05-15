@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { post } from '../services/WebService';
 import { User, UserContextType } from '../types/User';
 
@@ -8,7 +9,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-
+  const navigate = useNavigate();
   // Carregar usuário do localStorage ao montar
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
@@ -77,6 +78,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('currentUser');
+    navigate("/login")
   };
 
   const value: UserContextType = {
