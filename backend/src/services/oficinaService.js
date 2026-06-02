@@ -132,15 +132,11 @@ async function listVolunteers(oficinaId) {
       u.nome,
       u.email,
       u.perfil,
-      uo.total_presencas,
-      uo.total_faltas,
-      uo.percentual_frequencia,
-      uo.horas_cumpridas,
+      uo.presente,
       uo.ativo
     FROM usuario_oficina uo
     INNER JOIN usuario u ON u.id = uo.usuario_id
     WHERE uo.oficina_id = $1
-    ORDER BY u.nome ASC
   `;
 
   const { rows } = await db.query(query, [oficinaId]);
