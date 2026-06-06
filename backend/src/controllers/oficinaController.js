@@ -16,6 +16,16 @@ async function create(req, res, next) {
   }
 }
 
+async function listVoluntarios(req, res, next) {
+  try {
+    const usuarioId = req.user.id;
+    const result = await oficinaService.listOficinasVoluntarios(usuarioId);
+    return res.status(200).json(result);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function list(_req, res, next) {
   try {
     const result = await oficinaService.list();
@@ -24,6 +34,7 @@ async function list(_req, res, next) {
     return next(error);
   }
 }
+
 
 async function findById(req, res, next) {
   try {
@@ -120,9 +131,20 @@ async function listarMinhasInscricoes(req, res) {
   }
 }
 
+async function listarMinhasPresencas(req, res) {
+  try {
+    const usuarioId = req.user.id;
+    const inscricoes = await oficinaService.getPresencasUsuario(usuarioId);
+    res.status(200).json(inscricoes);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar inscrições." });
+  }
+}
+
 module.exports = {
   create,
   list,
+  listVoluntarios,
   findById,
   update,
   activate,
@@ -131,5 +153,6 @@ module.exports = {
   listVolunteers,
   enroll,
   listarMinhasInscricoes,
+  listarMinhasPresencas,
   unenroll
 };

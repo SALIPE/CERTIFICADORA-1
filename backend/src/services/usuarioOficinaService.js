@@ -148,69 +148,36 @@ async function listByOffice(oficinaId) {
   return rows;
 }
 
-async function recalculateMetrics(id) {
-  const relation = await ensureRelationExists(id);
-  const totalAulas = relation.totalPresencas + relation.totalFaltas;
-  const percentualFrequencia = totalAulas > 0 ? (relation.totalPresencas / totalAulas) * 100 : 0;
-
-  const { rows } = await db.query(
-    `UPDATE usuario_oficina
-     SET percentual_frequencia = $2
-     WHERE id = $1
-     RETURNING *`,
-    [id, percentualFrequencia.toFixed(2)]
-  );
-
-  return mapRelation(rows[0]);
-}
-
-async function update(id, { ativo, horasCumpridas }) {
+async function update(id, { ativo, presente }) {
   await ensureRelationExists(id);
 
   const { rows } = await db.query(
     `UPDATE usuario_oficina
      SET ativo = COALESCE($2, ativo),
-         horas_cumpridas = COALESCE($3, horas_cumpridas)
+         presente = COALESCE($3, presente)
      WHERE id = $1
      RETURNING *`,
-    [id, ativo, horasCumpridas]
+    [id, ativo, presente]
   );
 
   return mapRelation(rows[0]);
 }
 
-async function registerPresence(id, horasCumpridas = 0) {
-  await ensureRelationExists(id);
-
-  await db.query(
-    `UPDATE usuario_oficina
-     SET total_presencas = total_presencas + 1,
-         horas_cumpridas = horas_cumpridas + $2
-     WHERE id = $1`,
-    [id, horasCumpridas]
-  );
-
-  return recalculateMetrics(id);
+async function resgistrarPresenca(id) {
+  return update(id, { presente: true });
 }
 
-async function registerAbsence(id) {
-  await ensureRelationExists(id);
-
-  await db.query(
-    `UPDATE usuario_oficina
-     SET total_faltas = total_faltas + 1
-     WHERE id = $1`,
-    [id]
-  );
-
-  return recalculateMetrics(id);
+async function resgistrarFalta(id) {
+  return update(id, { presente: false });
 }
+
+
 
 async function reactivate(id) {
   return update(id, { ativo: true });
 }
 
-async function unlink(id) {
+async function desvincular(id) {
   return update(id, { ativo: false });
 }
 
@@ -221,8 +188,8 @@ module.exports = {
   listByUser,
   listByOffice,
   update,
-  registerPresence,
-  registerAbsence,
+  resgistrarPresenca,
+  resgistrarFalta,
   reactivate,
-  unlink
+  desvincular
 };

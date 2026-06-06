@@ -54,6 +54,25 @@ async function list() {
   return rows.map(mapOffice);
 }
 
+async function listOficinasVoluntarios(usuarioId) {
+  const query = `
+    SELECT o.*, COUNT(uo.usuario_id) as num_voluntarios
+    FROM oficina o
+      LEFT JOIN usuario_oficina uo ON o.id = uo.oficina_id
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM usuario_oficina uof
+      WHERE uof.oficina_id = o.id
+        AND uof.usuario_id = $1
+        AND uof.ativo = false
+    )
+    GROUP BY o.id
+    ORDER BY o.criado_em DESC
+  `;
+  const { rows } = await db.query(query, [usuarioId]);
+  return rows.map(mapOffice);
+}
+
 async function getInscricoesUsuario(usuarioId) {
   const query = `
     SELECT uo.oficina_id 
@@ -62,6 +81,19 @@ async function getInscricoesUsuario(usuarioId) {
     WHERE uo.usuario_id = $1 
       AND uo.ativo = true 
       AND o.status = 'ATIVA'
+  `;
+  const { rows } = await db.query(query, [usuarioId]);
+
+  return rows.map(row => row.oficina_id);
+}
+
+async function getPresencasUsuario(usuarioId) {
+  const query = `
+    SELECT uo.oficina_id 
+    FROM usuario_oficina uo
+    INNER JOIN oficina o ON uo.oficina_id = o.id
+    WHERE uo.usuario_id = $1 
+      AND uo.presente = true
   `;
   const { rows } = await db.query(query, [usuarioId]);
 
@@ -182,6 +214,8 @@ async function desinscreverVoluntario(oficinaId, usuarioId) {
 module.exports = {
   create,
   list,
+  listOficinasVoluntarios,
+  getPresencasUsuario,
   findById,
   update,
   activate,

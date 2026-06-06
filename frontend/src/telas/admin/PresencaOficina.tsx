@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Col, Container, Form, Modal, Row, Table } from 'react-bootstrap';
+import { Alert, Button, Col, Container, Row, Table } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { get, patch } from '../../services/WebService';
 import { Oficina } from '../../types/Oficina';
@@ -22,18 +22,15 @@ export default function PresencaOficina() {
   const [oficina, setOficina] = useState<Oficina | null>(null);
   const [voluntarios, setVoluntarios] = useState<UsuarioOficina[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showHorasModal, setShowHorasModal] = useState(false);
-  const [selectedVoluntario, setSelectedVoluntario] = useState<UsuarioOficina | null>(null);
-  const [horas, setHoras] = useState('');
 
   useEffect(() => {
     if (id) {
       fetchOficina(id);
       fetchVoluntarios(id);
     }
-  }, []);
+  }, [id]);
 
-  const fetchOficina = async (oficinaId: string) => {
+  async function fetchOficina(oficinaId: string) {
     try {
       const response = await get(`/oficinas/${oficinaId}`);
       const dbOficina = response;
@@ -58,7 +55,7 @@ export default function PresencaOficina() {
     }
   };
 
-  const fetchVoluntarios = async (oficinaId: string) => {
+  async function fetchVoluntarios(oficinaId: string) {
     try {
       setLoading(true);
       const response = await get(`/oficinas/${oficinaId}/voluntarios`);
@@ -72,31 +69,17 @@ export default function PresencaOficina() {
     }
   };
 
-  const handlePresenca = (voluntario: UsuarioOficina) => {
-    setSelectedVoluntario(voluntario);
-    setHoras('');
-    setShowHorasModal(true);
-  };
 
-  const handleConfirmPresenca = async () => {
-    if (!horas || parseFloat(horas) <= 0) {
-      alert('Por favor, insira um valor válido de horas');
+  const handlePresenca = async (voluntario: UsuarioOficina) => {
+    if (!window.confirm(`Registrar presença para ${voluntario.nome}?`)) {
       return;
     }
 
     try {
-      if (selectedVoluntario) {
-        await patch(`/usuario-oficinas/${selectedVoluntario.id}/presenca`, {
-          horasCumpridas: parseFloat(horas)
-        });
-        successAlert('Presença registrada com sucesso!');
-        setShowHorasModal(false);
-        setSelectedVoluntario(null);
-        setHoras('');
-        if (id) {
-          fetchVoluntarios(id);
-        }
-
+      await patch(`/usuario-oficinas/${voluntario.id}/presenca`, {});
+      successAlert('Presença registrada com sucesso!');
+      if (id) {
+        fetchVoluntarios(id);
       }
     } catch (error) {
       console.error('Erro ao registrar presença:', error);
@@ -222,7 +205,7 @@ export default function PresencaOficina() {
                         )}
                       </td>
                       <td>
-                        {voluntario.presente ? (
+                        {voluntario.ativo ? (
                           <div className="btn-group btn-group-sm" role="group">
                             <Button
                               variant="success"
@@ -236,16 +219,14 @@ export default function PresencaOficina() {
                               variant="warning"
                               size="sm"
                               onClick={() => handleFalta(voluntario)}
-                              title="Marcar falta"
-                            >
+                              title="Marcar falta">
                               ✗
                             </Button>
                             <Button
                               variant="danger"
                               size="sm"
                               onClick={() => handleDesvincular(voluntario)}
-                              title="Desvincular"
-                            >
+                              title="Desvincular">
                               ⊗
                             </Button>
                           </div>
@@ -269,45 +250,6 @@ export default function PresencaOficina() {
         </Row>
       )}
 
-      <Modal show={showHorasModal} onHide={() => setShowHorasModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Registrar Presença</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedVoluntario && (
-            <div>
-              <p className="mb-3">
-                <strong>Voluntário:</strong> {selectedVoluntario.nome}
-              </p>
-              <Form.Group>
-                <Form.Label>Horas Cumpridas *</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  value={horas}
-                  onChange={(e) => setHoras(e.target.value)}
-                  placeholder="Ex: 2.5"
-                />
-              </Form.Group>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowHorasModal(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleConfirmPresenca}
-          >
-            Confirmar
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </Container>
   );
 }
