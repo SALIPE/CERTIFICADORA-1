@@ -188,9 +188,9 @@ async function inscreverVoluntario(oficinaId, usuarioId) {
     throw error;
   }
 
-  const query = `
-    INSERT INTO usuario_oficina (oficina_id, usuario_id, ativo)
-    VALUES ($1, $2, true)
+const query = `
+    INSERT INTO usuario_oficina (oficina_id, usuario_id, ativo, presente)
+    VALUES ($1, $2, true, false)
     RETURNING *
   `;
 
