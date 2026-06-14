@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Button, ButtonGroup, Card, Col, Container, Form, Modal, Row } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { get, post, put } from '../../services/WebService';
 import { Oficina } from '../../types/Oficina';
 import { successAlert } from '../../utils/Functions';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [workshops, setWorkshops] = useState<Oficina[]>([]);
 
   const [showModal, setShowModal] = useState(false);
@@ -31,13 +33,12 @@ export default function AdminDashboard() {
     try {
       const response = await get("/oficinas")
       const oficinasDoBanco = response.map((dbOficina: any) => {
-        const dataInicio = dbOficina.dataInicio || dbOficina.dataInicio;
         return {
           id: dbOficina.id,
           titulo: dbOficina.titulo,
           tema: dbOficina.tema || 'Geral',
           descricao: dbOficina.descricao || '',
-          dataInicio: dataInicio ? dataInicio.split('T')[0] : '',
+          dataInicio: dbOficina.dataInicio ? dbOficina.dataInicio.split('T')[0] : '',
           dataFim: dbOficina.dataFim ? dbOficina.dataFim.split('T')[0] : '',
           local: dbOficina.local || 'Local a definir',
           numeroParticipantes: dbOficina.numeroParticipantes || 0,
@@ -255,6 +256,15 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="d-flex gap-2 mt-3">
+                      <Button
+                        variant="info"
+                        size="sm"
+                        onClick={() => navigate(`/admin/oficina/${workshop.id}/presenca`)}
+                        className="flex-grow-1"
+                        title="Gerenciar presença"
+                      >
+                        ✏️ Presença
+                      </Button>
                       <Button
                         variant="warning"
                         size="sm"

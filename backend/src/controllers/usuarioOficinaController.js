@@ -54,18 +54,18 @@ async function update(req, res, next) {
   }
 }
 
-async function registerPresence(req, res, next) {
+async function resgistrarPresenca(req, res, next) {
   try {
-    const result = await usuarioOficinaService.registerPresence(req.params.id, req.body.horasCumpridas);
+    const result = await usuarioOficinaService.resgistrarPresenca(req.params.id, req.body.horasCumpridas);
     return res.status(200).json(result);
   } catch (error) {
     return next(error);
   }
 }
 
-async function registerAbsence(req, res, next) {
+async function resgistrarFalta(req, res, next) {
   try {
-    const result = await usuarioOficinaService.registerAbsence(req.params.id);
+    const result = await usuarioOficinaService.resgistrarFalta(req.params.id);
     return res.status(200).json(result);
   } catch (error) {
     return next(error);
@@ -81,9 +81,9 @@ async function reactivate(req, res, next) {
   }
 }
 
-async function unlink(req, res, next) {
+async function desvincular(req, res, next) {
   try {
-    const result = await usuarioOficinaService.unlink(req.params.id);
+    const result = await usuarioOficinaService.desvincular(req.params.id);
     return res.status(200).json(result);
   } catch (error) {
     return next(error);
@@ -97,8 +97,8 @@ module.exports = {
   listByUser,
   listByOffice,
   update,
-  registerPresence,
-  registerAbsence,
+  resgistrarPresenca,
+  resgistrarFalta,
   reactivate,
-  unlink
+  desvincular
 };

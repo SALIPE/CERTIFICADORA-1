@@ -12,9 +12,9 @@ router.get('/usuario/:usuarioId', usuarioOficinaController.listByUser);
 router.get('/oficina/:oficinaId', usuarioOficinaController.listByOffice);
 router.post('/', authorize('ADMIN'), usuarioOficinaController.create);
 router.put('/:id', authorize('ADMIN'), usuarioOficinaController.update);
-router.patch('/:id/presenca', authorize('ADMIN'), usuarioOficinaController.registerPresence);
-router.patch('/:id/falta', authorize('ADMIN'), usuarioOficinaController.registerAbsence);
+router.patch('/:id/presenca', authorize('ADMIN'), usuarioOficinaController.resgistrarPresenca);
+router.patch('/:id/falta', authorize('ADMIN'), usuarioOficinaController.resgistrarFalta);
 router.patch('/:id/reativar', authorize('ADMIN'), usuarioOficinaController.reactivate);
-router.patch('/:id/desvincular', authorize('ADMIN'), usuarioOficinaController.unlink);
+router.patch('/:id/desvincular', authorize('ADMIN'), usuarioOficinaController.desvincular);
 
 module.exports = router;

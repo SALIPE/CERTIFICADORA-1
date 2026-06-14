@@ -7,7 +7,9 @@ const router = Router();
 router.use(ensureAuthenticated);
 
 router.get('/minhas-inscricoes', authorize('VOLUNTARIO', 'ADMIN'), oficinaController.listarMinhasInscricoes);
-router.get('/', oficinaController.list);
+router.get('/', authorize('ADMIN'), oficinaController.list);
+router.get('/oficinas-voluntarios', authorize('VOLUNTARIO'), oficinaController.listVoluntarios);
+router.get('/minhas-presencas', authorize('VOLUNTARIO'), oficinaController.listarMinhasPresencas);
 router.get('/:id', oficinaController.findById);
 router.post('/', authorize('ADMIN'), oficinaController.create);
 router.put('/:id', authorize('ADMIN'), oficinaController.update);

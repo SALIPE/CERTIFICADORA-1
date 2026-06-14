@@ -6,17 +6,19 @@ import { Oficina } from '../../types/Oficina';
 export default function Eventos() {
   const [workshops, setWorkshops] = useState<Oficina[]>([]);
   const [registeredWorkshops, setRegisteredWorkshops] = useState<string[]>([]);
+  const [oficinasPresentes, setOficinasPresentes] = useState<string[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchOficinas();
     fetchMinhasInscricoes();
+    fetchMinhasPresencas()
   }, []);
 
   const fetchOficinas = async () => {
     try {
-      const response = await get("/oficinas")
+      const response = await get("/oficinas/oficinas-voluntarios")
       console.log(response)
       const oficinasDoBanco = response.map((dbOficina: any) => {
         const dataInicio = dbOficina.dataInicio || dbOficina.dataInicio;
@@ -46,6 +48,16 @@ export default function Eventos() {
       const response = await get('/oficinas/minhas-inscricoes');
       console.log(response)
       setRegisteredWorkshops(response);
+    } catch (error) {
+      console.error('Erro ao buscar as inscrições do usuário:', error);
+    }
+  };
+
+  async function fetchMinhasPresencas() {
+    try {
+      const response = await get('/oficinas/minhas-presencas');
+      console.log(response)
+      setOficinasPresentes(response);
     } catch (error) {
       console.error('Erro ao buscar as inscrições do usuário:', error);
     }
@@ -119,6 +131,7 @@ export default function Eventos() {
   };
 
   const isRegistered = (workshopId: string) => registeredWorkshops.includes(workshopId);
+  const isPresente = (workshopId: string) => oficinasPresentes.includes(workshopId);
 
   const getAvailableSpots = (workshop: Oficina) => {
     return workshop.vagas - workshop.numeroVoluntarios;
@@ -161,6 +174,7 @@ export default function Eventos() {
             const available = getAvailableSpots(workshop);
             const isFull = available === 0;
             const isUserRegistered = isRegistered(workshop.id);
+            const isUserPresente = isPresente(workshop.id);
 
             return (
               <Col key={workshop.id} md={6} lg={4} className="mb-3">
@@ -220,24 +234,32 @@ export default function Eventos() {
                         </div>
                       </div>
                     </div>
-                    {isUserRegistered ? (
-                      <Button
-                        variant="danger"
-                        onClick={() => handleUnregister(workshop.id, workshop.titulo)}
-                        className="w-100"
-                      >
-                        Cancelar Inscrição
-                      </Button>
-                    ) : (
-                      <Button
-                        variant={isFull ? 'secondary' : 'primary'}
-                        onClick={() => handleRegister(workshop.id, workshop.titulo)}
-                        disabled={isFull}
-                        className="w-100"
-                      >
-                        {isFull ? 'Oficina Cheia' : 'Inscrever-se'}
-                      </Button>
-                    )}
+                    {isUserPresente ?
+                      (<Button
+                        disabled
+                        variant="success"
+                        onClick={() => null}
+                        className="w-100">
+                        Presente
+                      </Button>) : (
+                        isUserRegistered ? (
+                          <Button
+                            variant="danger"
+                            onClick={() => handleUnregister(workshop.id, workshop.titulo)}
+                            className="w-100"
+                          >
+                            Cancelar Inscrição
+                          </Button>
+                        ) : (
+                          <Button
+                            variant={isFull ? 'secondary' : 'primary'}
+                            onClick={() => handleRegister(workshop.id, workshop.titulo)}
+                            disabled={isFull}
+                            className="w-100"
+                          >
+                            {isFull ? 'Oficina Cheia' : 'Inscrever-se'}
+                          </Button>
+                        ))}
                   </Card.Body>
                 </Card>
               </Col>

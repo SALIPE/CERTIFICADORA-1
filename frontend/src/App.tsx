@@ -9,6 +9,7 @@ import VoluntarioLayout from './layouts/VoluntarioLayout';
 import CadastroVoluntario from './telas/CadastroVoluntario';
 import LoginPage from './telas/Login';
 import AdminDashboard from './telas/admin/AdminDashboard';
+import PresencaOficina from './telas/admin/PresencaOficina';
 import UsuarioCreateEdit from './telas/admin/UsuarioCreateEdit';
 import Eventos from './telas/voluntario/Eventos';
 import VoluntarioEdit from './telas/voluntario/VoluntarioEdit';
@@ -33,6 +34,7 @@ export default function App() {
             }>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/usuarios" element={<UsuarioCreateEdit />} />
+            <Route path="/admin/oficina/:id/presenca" element={<PresencaOficina />} />
           </Route>
 
           <Route
