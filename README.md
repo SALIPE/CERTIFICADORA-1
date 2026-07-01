@@ -28,5 +28,5 @@ Projeto desenvolvido em colaboração pelos acadêmicos de Engenharia de Computa
 
 - 👨‍💻 [Felipe Augusto Ribeiro Matos](https://github.com/fematoss01)
 - 👨‍💻 [Felipe Bueno de Souza](https://github.com/SALIPE)
-- 👨‍💻 [Maria Aparecida Bomfim Macedo](https://github.com/)
+- 👨‍💻 [Maria Aparecida Bomfim Macedo](https://github.com/mah-riia)
 - 👨‍💻 [Mateus Rodrigues(Sobrenome do Colega)](https://github.com/matrmeretica)
