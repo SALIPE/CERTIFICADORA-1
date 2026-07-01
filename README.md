@@ -27,6 +27,6 @@ O ecossistema do projeto foi construído utilizando as seguintes tecnologias:
 Projeto desenvolvido em colaboração pelos acadêmicos de Engenharia de Computação:
 
 - 👨‍💻 [Felipe Augusto Ribeiro Matos](https://github.com/fematoss01)
-- 👨‍💻 [Felipe Bueno de Souza](https://github.com/LinkDoGitDele)
-- 👨‍💻 [Maria Aparecida Bomfim Macedo](https://github.com/LinkDoGitDele)
-- 👨‍💻 [Mateus Rodrigues(Sobrenome do Colega)](https://github.com/LinkDoGitDele)
+- 👨‍💻 [Felipe Bueno de Souza](https://github.com/SALIPE)
+- 👨‍💻 [Maria Aparecida Bomfim Macedo](https://github.com/)
+- 👨‍💻 [Mateus Rodrigues(Sobrenome do Colega)](https://github.com/matrmeretica)
